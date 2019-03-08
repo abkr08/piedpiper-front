@@ -1,0 +1,76 @@
+.SideDrawer {
+    height: 100vh;
+    background-color: white;
+    width: 30%;
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-top: 40px; 
+    transition: transform 0.6s ease-out;
+}
+.Open {
+    transform: translateX(0);
+}
+
+.Close {
+transform: translateX(-100%);
+}
+.PP {
+    display: block;
+    text-align: left;
+}
+
+.PP label {
+    text-transform: capitalize;
+    font-size: 16px; 
+}
+.PP input {
+    margin: 5px;
+    width: auto !important;
+}
+.SideDrawer .divs {
+    margin: 0;
+    padding: 20px;
+    text-align: left;
+    font-size: 1.3em;
+    font-weight: 600;
+}
+.SideDrawer .divs:hover {
+    background-color: gray;
+    cursor: pointer;
+}
+h3 {
+    text-align: left;
+}
+.SideDrawer form {
+    position: relative;
+    text-align: center;
+    width: 80%;
+    padding: 10px;
+}
+.SideDrawer form input {
+    width: 80%;
+    padding: 10px;
+    /* border-radius: 7px; */
+}
+
+.SideDrawer .RoomsList {
+    padding: 0;
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9em;
+    position: relative;
+    left: 0;
+}
+
+
+/* .SideDrawer .RoomsList li {
+    text-align: left;
+    padding: 10px;
+}
+.SideDrawer .RoomsList li:hover {
+    background-color: gray;
+    cursor: pointer;
+} */
+

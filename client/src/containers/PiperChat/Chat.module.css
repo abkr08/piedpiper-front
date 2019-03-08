@@ -1,0 +1,60 @@
+.Chat {
+    padding: 10px;
+    box-sizing: border-box;
+    overflow: scroll;
+    list-style: none;
+    background: #DCF8C6; 
+    border-radius: 5%;
+    /* margin-left: 8px; */
+    margin-top: 10px;
+    margin-bottom: 10px;
+    float: left;
+    clear: both;
+    text-align: left;
+    position: relative;
+}
+.ByCurrentUser {
+    list-style: none;
+    background: #eee; 
+    padding: 10px;
+    border-radius: 7%;
+    float: right;
+    margin-right: 8px;
+    clear: both;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    text-align: left;
+}
+/* .Chat:before {
+    content: '';
+    height: 20px;
+    width: 20px;
+    background-color: #DCF8C6;
+    position: absolute;
+    left: -1%;
+    top: 25%;
+    transform: rotate(45deg);
+    margin-left: -10px;
+    z-index: 0;
+} */
+
+/* .Wrapper {
+    margin: 0;
+    padding: 3px;
+    /* background-color: gold; 
+    float: left;
+    clear: both;
+} */
+.Chat li {
+    z-index: 0;
+    position: relative;
+}
+
+.Sender {
+    text-transform: capitalize;
+    font-weight: 600;
+}
+
+ .Text {
+    font-size: 16px;
+} 

@@ -1,0 +1,19 @@
+.Call {
+    position: relative;
+    width: 80%;
+    box-sizing: border-box;
+}
+.RemoteVideo {
+    width: 80%;
+    border-radius: 12px;
+    height: 80%;
+}
+
+.LocalVideo {
+    position: absolute;
+    width: 30%;
+    right: 5%;
+    top: 10%;
+    border-radius: 7px;
+    height: 30%;
+}
