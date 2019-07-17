@@ -45,7 +45,7 @@ const chatReducer = (state = initialState, action) => {
                     ...state, unopenedMessages: unopenedMessagesCopy
                }  
             }
-        case 'ON_ROOM_FETCHED':
+        case 'ON_ROOMS_FETCHED':
             return {
                 ...state, contacts: action.contacts
             }

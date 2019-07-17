@@ -1,8 +1,10 @@
 import React, {Component} from 'react';
+import { connect } from 'react-redux';
 import classes from './ChatScreenBar.module.css';
 import Modal from '../../containers/Modal/Modal';
 import Call from '../../containers/Call/Call';
 import OptionsDropbar from '../UI/OptionsDropbar/OptionsDropbar';
+
 
 class ChatScreenBar extends Component {
     state = {
@@ -29,6 +31,10 @@ class ChatScreenBar extends Component {
     }
     hideOptions = () => {
         this.setState({showOptions: false, position:{}})
+    }
+    
+    endCall = () => {
+        this.setState({showModal: false})
     }
     render() {
         let optionsDropbar = null;
@@ -58,14 +64,20 @@ class ChatScreenBar extends Component {
                     <i className='fa fa-ellipsis-v' onClick={event => this.showOptions(event)}></i>
                     {optionsDropbar}
                </div>
-               <Modal backdropClicked={() => this.setState({showModal: false})} show={this.state.showModal}>
+               <Modal show={this.state.showModal}>
                     {this.state.callType ? 
-                        <Call callTo={this.props.room.name} callType={this.state.callType}/> : 
-                        null}
+                        <Call callTo={this.props.room.name} closeModal={this.endCall} callType={this.state.callType}/> : 
+                        null
+                    }
                 </Modal>
             </div>
         )
     } 
- }
-
- export default ChatScreenBar;
+}
+const mapStateToProps = state => {
+    return {
+        callEnded: state.call.callEnded,
+        callStarted: state.call.callOngoing
+    }
+}
+ export default connect(mapStateToProps)(ChatScreenBar);

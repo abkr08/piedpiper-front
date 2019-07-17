@@ -22,7 +22,7 @@
 }
 
 .Danger {
-    color: #944317;
+    background-color: #b10707;
 }
 .Button:disabled {
     /* background-color: #eee; */

@@ -18,9 +18,9 @@ export const chatInit = () => {
         chatManager
         .connect({
             onAddedToRoom: room => {
-                // this.getRooms();
+                getRooms();
                 // this.setState({showSideDrawer: false, room: room});
-                // this.getMessages(room);
+                getMessages(room);
             }
         })
         .then(user => {
@@ -28,7 +28,7 @@ export const chatInit = () => {
             dispatch(subscribeToRooms(currentUser))
             dispatch(chatInitSuccess(currentUser));
             dispatch(getRooms());
-            console.log(currentUser.rooms[0].users);
+            // console.log(currentUser.rooms[0].users);
         })
         .catch(err => console.log(err));
     }
@@ -37,11 +37,12 @@ const getRooms = () => {
     return dispatch => {
         const contacts = currentUser.rooms.map(room => {
             let obj = {};
-            obj.userIds = JSON.stringify(room.userIds);
-            // obj.name = //!room.isPrivate ? room.name :
-            room.userIds.map(name => console.log(name)).join('');
+            let name = !room.isPrivate ? room.name :
+                        room.name.split('and')
+                            .filter(name => name !== currentUser.id).join('');
+            !name.length ? obj.name = currentUser.id : obj.name = name;
             obj.id = room.id;
-            return obj;
+            return {...room, ...obj};
         });
         dispatch({type: 'ON_ROOMS_FETCHED', contacts})
     }
@@ -157,7 +158,7 @@ export const startNewChat = data => {
         axios.get(`/search/${data.chatParticipant}`, {headers: {'x-auth-token': token}})
             .then(res => {
                 currentUser.createRoom({
-                name: `${currentUser}and${data.chatParticipant}`,
+                name: `${currentUser.id}and${data.chatParticipant}`,
                 private: true,
                 addUserIds: [data.chatParticipant],
                 customData: {displayImage: res.data.avatar}     
