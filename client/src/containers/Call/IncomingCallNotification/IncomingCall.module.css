@@ -1,0 +1,19 @@
+.IncomingCall {
+    position: fixed;
+    top: 0;
+    left: 30%;
+    right: 30%;
+    background-color: rgb(238, 238, 242);
+    padding: 10px;
+    display: flex;
+    flex-flow: column;
+    text-align: center;
+    align-items: center;
+    font-size: 24px;
+    text-transform: uppercase;
+}
+
+.Buttons {
+    display: flex;
+    flex-flow: row;
+}
