@@ -7,7 +7,7 @@ class Modal extends Component {
         if (this.props.show){
             modal = (
             <React.Fragment>
-                <Backdrop show={this.props.show} clicked={this.props.backdropClicked}/>
+                {/* <Backdrop show={this.props.show} clicked={this.props.backdropClicked}/> */}
                 <div className={classes.Modal}>{this.props.children}</div>
             </React.Fragment>
         );

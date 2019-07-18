@@ -6,15 +6,12 @@ export {
 } from './actionCreators/authActionCreators';
 
 export {
-    getCallerReady,
-    // addIceCandidate,
-    // addTrack,
-    // setLocalDescription,
-    // setRemoteDescription,
-    // createAnswer,
-    // createOffer, 
-    callUser
-} from './actionCreators/callActionCreators';
+    getCallerReady, 
+    callUser,
+    endCall,
+    callAccepted,
+    callRejected
+} from './actionCreators/callActionCreatorss';
 
 export {
     chatInit,

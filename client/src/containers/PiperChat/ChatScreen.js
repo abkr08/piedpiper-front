@@ -20,7 +20,6 @@ class ChatScreen extends Component {
     }
     componentDidMount () {
         this.props.chatInit();
-        this.props.getCallerReady();
         this.scrollToBottom();
     }
     scrollToBottom = () => {
@@ -55,17 +54,6 @@ class ChatScreen extends Component {
 
     componentDidUpdate () {
         this.scrollToBottom();
-        if(this.props.chatkitUser){
-            const contacts = this.props.chatkitUser.rooms.map(room => {
-                console.log(room.users);
-                let obj = {};
-                obj.name = !room.isPrivate ? room.name :
-                room.userIds.filter(name => name !== this.props.userId);
-                obj.id = room.id;
-                return obj;
-            });
-        // this.setState({contacts});
-        }
     }
     render () {  
         console.log(this.state.contacts);
@@ -75,7 +63,7 @@ class ChatScreen extends Component {
         if (this.props.currentRoom){
             chat = (
             <div className={classes.Chat}>
-                <ChatScreenBar room={this.props.currentRoom}/>
+                <ChatScreenBar room={this.props.currentRoom} endCall={this.props.endCall}/>
                 <div className={classes.Msgs} ref={(div) => {this.scrollRef = div}}>
                 {
                     this.props.messages.map(msg => {
@@ -109,7 +97,7 @@ class ChatScreen extends Component {
                     <i onClick = {this.toggleSideDrawer} className="fa fa-bars"></i>
                 </div>
                 <h1 style={{textAlign: 'center'}}>Contacts</h1>
-                {this.props.chatkitUser.rooms && this.props.chatkitUser.rooms.map(con => {
+                {this.props.contacts.length && this.props.contacts.map(con => {
                     return <Contact key={con.id} name={con.name} 
                                 room={con}
                                 user={this.props.userId}
@@ -140,13 +128,14 @@ const mapStateToProps = state => {
         chatkitUser: state.chat.currentUser,
         currentRoom: state.chat.currentRoom,
         messages: state.chat.messages,
-        unopenedMessages: state.chat.unopenedMessages
+        endCall: state.call.endCall,
+        unopenedMessages: state.chat.unopenedMessages,
+        contacts: state.chat.contacts
     }
 }
 const mapDispatchToProps = dispatch => {
     return {
         chatInit: () => dispatch(actionCreators.chatInit()),
-        getCallerReady: () => dispatch(actionCreators.getCallerReady()),
         getMessages: room => dispatch(actionCreators.getMessages(room)),
         sendMessage: data => dispatch(actionCreators.sendMessage(data))
     }

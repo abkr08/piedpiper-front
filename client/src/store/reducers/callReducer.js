@@ -5,7 +5,11 @@ const initialState = {
     remoteStream: null,
     localStream: null,
     incomingCall: false,
-    callType: null
+    callType: null,
+    caller: null,
+    callOngoing: false,
+    callStarted: false,
+    callEnded: false
 }
 
 const callReducer = (state = initialState, action) => {
@@ -15,10 +19,13 @@ const callReducer = (state = initialState, action) => {
             
             return {
                 ...state,
-                channel: action.channel,    
+                channel: action.channel 
+            }
+        case actionTypes.CALL_INIT: 
+            return {
+                ...state, callStarted: true, callEnded: false
             }
         case actionTypes.ON_TRACK: 
-            
             return {
                 ...state, remoteStream: action.remoteStream
             }
@@ -28,7 +35,19 @@ const callReducer = (state = initialState, action) => {
             }
         case actionTypes.ON_INCOMING_CALL:
             return {
-                ...state, incomingCall: true, callType: action.callType
+                ...state, incomingCall: true, callType: action.callType, caller: action.caller
+            }
+        case actionTypes.CALL_ACCEPTED: 
+            return {
+                ...state, incomingCall: false, callOngoing: true
+            }
+        case actionTypes.CALL_REJECTED: 
+            return {
+                ...state, incomingCall: false, callOngoing: false
+            }
+        case actionTypes.END_CALL: 
+            return {
+                ...state, callOngoing: false, incomingCall: false, callEnded: true, callStarted: false
             }
         default: 
         return state;

@@ -1,6 +1,8 @@
 .Contact {
     display: flex;
     flex-flow: row;
+    /* box-sizing: border-box;  */
+    width: calc(100% + 2px);
     padding-left: 16px;
     padding-top: 10px; 
     border-top: 1px solid rgb(48, 51, 54);
@@ -19,7 +21,7 @@
     background-color: #E9EBEB;
     cursor: pointer;
 }
-img {
+.ImageContainer {
     height: 60px;
     width: 60px;
     border-radius: 50%;

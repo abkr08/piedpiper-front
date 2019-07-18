@@ -31,6 +31,9 @@ class OptionsDropbar extends Component {
             case 'Exit group':
                 this.props.deleteChat(this.props.roomId)
                 break;
+            case 'Delete chat':
+                this.props.deleteChat(this.props.roomId);
+                break;
             default:
                 break;
         }

@@ -5,6 +5,7 @@
     position: relative;
     box-sizing: border-box;
     overflow-y: hidden;
+    
 }
 .ContactsPane {
     height: 100vh;

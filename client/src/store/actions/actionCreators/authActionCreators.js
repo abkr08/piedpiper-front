@@ -11,6 +11,9 @@ const logInSuccess = (token, userId) => {
 const checkTokenValidity = expiresIn => {
     return dispatch => {
         setTimeout(() => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("expiresIn");
             dispatch(logout());
         }, expiresIn * 1000);
     }
@@ -92,7 +95,6 @@ const registrationFailed = err => {
     }
 }
 export const onRegister = data => {
-    console.log(data);
     return dispatch => {
         axios.post("/register", data)
             .then(res => {

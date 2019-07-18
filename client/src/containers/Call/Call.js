@@ -3,61 +3,43 @@ import classes from './Call.module.css';
 import { connect } from 'react-redux';
 import * as callActionCreators from '../../store/actions/actionIndex'
 
+import Button from '../../components/UI/Button/Button';
+
 class Call extends Component {
     
     state = {
           id: null,
-          room: ''
+          room: null
     }
        
     componentDidMount (){
-        
-        this.props.callUser(this.props.callTo, this.props.callType);
-        alert(this.props.callType);
-        this.props.channel.bind("client-reject", answer => {
-            if (answer.room === this.state.room) {
-              console.log("Call declined");
-              alert("call to " + answer.rejected + "was politely declined");
-              this.endCall();
+        if (this.props.role === 'callee'){
+            this.setState({room: this.props.caller});
+        } else {
+            this.props.callUser(this.props.callTo, this.props.callType);
+            this.setState({room: this.props.callTo});
+        }
+        this.props.channel.on('message', data => {
+            if (JSON.parse(data).type === 'leave'){
+                if (!this.props.role){
+                    this.props.closeModal();
+                }
             }
-          });
-      
-          this.props.channel.bind("client-endcall", answer =>  {
-            if (answer.room === this.state.room) {
-              console.log("Call Ended");
-              this.endCall();
-            }
-          });
-          
+        })
     }
        
     
-     endCall = () => {
-          this.setState({room: undefined});
-          ///this.props.closeCaller.close();
-          for (let track of this.localUserMedia.getTracks()) {
-            track.stop();
-          }
-        
-          this.toggleEndCallButton();
+    endCall = () => {
+        this.setState({room: null});
+        this.props.endCall();
+        if (!this.props.role){
+            this.props.closeModal();
         }
+    }
     
-       endCurrentCall = () => {
-          this.props.channel.trigger("client-endcall", {
-            room: this.state.room
-          });
-    
-          this.endCall();
-        }
+   
     
     
-         toggleEndCallButton = () => {
-        /*  if (document.getElementById("endCall").style.display === "block") {
-            document.getElementById("endCall").style.display = "none";
-          } else {
-            document.getElementById("endCall").style.display = "block";
-          }*/
-        }
     componentDidUpdate () {
         if (this.props.callType === 'video'){
             this.localVideoRef.srcObject = this.props.localStream;
@@ -73,26 +55,33 @@ class Call extends Component {
         if (this.props.callType === 'video'){
             call = (
                 <React.Fragment>
-                    <video autoPlay muted src={this.props.localStream} 
-                        className={classes.LocalVideo} 
-                        ref={(lVid)=> this.localVideoRef = lVid}>
-                    </video>
-                    <video autoPlay  src={this.props.remoteStream} 
-                        className={classes.remoteVideo} 
+                    <div className={classes.videoContainer}>
+                        <video className={classes.LocalVideo} autoPlay muted  
+                            ref={(lVid)=> this.localVideoRef = lVid}>
+                        </video>
+
+                        <video className={classes.RemoteVideo} autoPlay  
                         ref={(rVid)=> this.remoteVideoRef = rVid}>
-                    </video>
+                        </video>
+                    </div>
                 </React.Fragment>
             );
         } else {
             call = (
                 <React.Fragment>
-                    <audio autoPlay src={this.props.localStream} ref={audio => this.localAudioRef = audio} />
+                    <audio autoPlay src={this.props.localStream} muted ref={audio => this.localAudioRef = audio} />
                     <audio autoPlay src={this.props.remoteStream} ref={audio => this.remoteAudioRef = audio} />
                 </React.Fragment>
             )
         }
         return (
-            <div className={classes.Call}>{call}</div>
+            <div className={classes.Call}>
+                {call}
+                <div className={classes.Buttons}>
+                    {/* <span style={{color: 'red'}}><i class="fas fa-window-close"></i></span> */}
+                    <Button clicked={this.endCall} btnType='Danger'>End Call</Button>
+                </div>
+            </div>
         )
     }
 }
@@ -101,12 +90,15 @@ const mapStateToProps = state => {
         userId: state.auth.userId,
         channel: state.call.channel,
         remoteStream: state.call.remoteStream,
-        localStream: state.call.localStream
+        localStream: state.call.localStream,
+        incomingCall: state.call.incomingCall,
+        caller: state.call.caller
     }
 }
 const mapDispatchToProps = dispatch => {
     return {
-        callUser: (user, callType) => dispatch(callActionCreators.callUser(user, callType))
+        callUser: (user, callType) => dispatch(callActionCreators.callUser(user, callType)),
+        endCall: () => dispatch(callActionCreators.endCall())
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Call);

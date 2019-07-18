@@ -3,7 +3,6 @@ import { store } from './index';
 
 const user = localStorage.getItem('userId');
 const token = localStorage.getItem('token');
-console.log(store);
 const pusher = new Pusher('f790521ed52ae6aaf77e', {
     cluster: 'eu',
     forceTLS: true,
