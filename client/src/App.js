@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import {Route, withRouter, Switch } from "react-router-dom";
+import {Route, withRouter, Switch, Redirect } from "react-router-dom";
 import { connect } from 'react-redux';
 import IncomingCall from './containers/Call/IncomingCallNotification/IncomingCall';
 import Register from "./components/Auth/Register/Register";
@@ -67,7 +67,7 @@ class App extends Component {
       } else {
         chatScreen = <ChatScreen />
       }
-    }
+    } 
     return (
         <div>
           <Navbar />
@@ -78,6 +78,7 @@ class App extends Component {
               <Route path="/register" component={Register} />
               <Route path="/login" component={Login} />
               <Route path="/logout" component={Logout} />
+              { !this.props.isLoggedIn && <Redirect to='/login' />}
             </Switch>
           </div>
         </div>
