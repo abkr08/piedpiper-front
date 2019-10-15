@@ -6,6 +6,7 @@ import classes from './Login.module.css';
 import Input from '../../UI/Input/Input';
 import { checkValidity, updateObject } from '../../../shared/utility';
 import Button from '../../UI/Button/Button'; 
+import ErrorBox from '../../UI/ErrorBox/ErrorBox';
 
 class Login extends Component {
 
@@ -96,6 +97,7 @@ class Login extends Component {
       <div className={classes.Login}>
       {redirect}
         <h2> Login </h2>
+        { this.props.error && <ErrorBox error={this.props.error}/> }
         <form onSubmit={this.onSubmit}>
           {form}
           <Button btnType='Success' disabled={!this.state.formIsValid}>Log in</Button>
@@ -106,7 +108,8 @@ class Login extends Component {
 }
 const mapStateToProps = state => {
   return {
-    isLoggedIn: state.auth.token !== null
+    isLoggedIn: state.auth.token !== null,
+    error: state.auth.error
   }
 }
 
