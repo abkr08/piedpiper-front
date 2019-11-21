@@ -1,86 +1,29 @@
-/* 
-.registerBox {
-  position: relative;
-  top: 50%;
-  left: 50%; 
-  transform: translate(-50%, -50%);  
-  margin-top: 100px;
-  padding: 40px;
-  width: 50%;
-  background: rgba(0, 0, 0, 0.8);
-  box-sizing: border-box;
-  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
-}
-
-.registerBox h2 {
-  margin: 0 0 30px;
-  padding: 0;
-  color: #fff;
-  text-align: center;
-}
-
-.registerBox .inputBox {
-  position: relative;
-}
-
-.registerBox .inputBox input {
-  width: 100%;
-  padding: 10px 0;
-  letter-spacing: 1px;
-  font-size: 16px;
-  color: #fff;
-  margin-bottom: 30px;
-  border: none;
-  border-bottom: 1px solid #fff;
-  outline: none;
-  background: transparent;
-}
-.registerBox .inputBox label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 10px 0;
-  font-size: 16px;
-  color: #fff;
-  pointer-events: none;
-  transition: 0.5s;
-}
-.registerBox .inputBox input:focus ~ label,
-.registerBox .inputBox input:valid ~ label {
-  top: -18px;
-  color: rgb(150, 10, 127);
-  font-size: 12px;
-}
- */
  .RegisterBox {
-    /* position: relative;
-    margin: 20px auto;
-    width: 50%;
-    border: 1px solid #eee;
-    padding: 10px;
-    box-sizing: border-box; */
-  text-align: center;
+  text-align: left;
+  position: relative;
   max-width: 500px;
-	/* padding: 10px 20px; */
-	margin: 50px auto;
+  margin: 50px auto;
   padding: 20px;
-  box-shadow: 0 2px 3px #ccc;
-	background: whitesmoke;
-	border-radius: 8px;
-	font-family: Georgia, "Times New Roman", Times, serif;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  font-family: Georgia, "Times New Roman", Times, serif;
 } 
 
 .RegisterBox form {
   position: relative;
-  width: 80%;
+  text-align: center;
   margin: 0 auto;
 }
 
-.registerBox input[type="submit"] {
-  border: none;
-  outline: none;
-  color: #fff;
-  background: #00BFA5;
-  padding: 10px 20px;
+.RegisterBox h2 {
+  color: white;
+  margin: 20px 0;
+}
+
+.RegisterBox form p {
+  color: white;
+  text-align: right;
+  font-size: 1.2em;
+  margin-bottom: 15px 0;
   cursor: pointer;
-} 
+}

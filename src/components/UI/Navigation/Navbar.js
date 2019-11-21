@@ -6,66 +6,52 @@ import classes from "./Navbar.module.css";
 
 class Navbar extends Component {
   render() {
-    let displayedElements = (<ul>
+    let displayedElements = (
+      <ul>
+        <div>
           <li>
             <Link to="/">
-              {/* <div className="navIcon">
-                <i className="fa fa-home" aria-hidden="true" />
-              </div> */}
-              <div className={[classes.NavItem, classes.Brand].join(' ')}>
-                <span data-text="PiperChat"> </span>
+              <div className={classes.Brand}>
                 PiperChat
               </div>
               </Link>
           </li>
+        </div>
+        <div className={classes.FloatedRight}>
           <li>
-            <Link to="/login">
-              {/* <div className="navIcon">
-                <i className="fa fa-sign-in" aria-hidden="true" />
-              </div> */}
-              <div className={classes.NavItem}>
-                <span data-text="Login"> </span>
-                Login
-              </div>
-            </Link>
-          </li>
-          <li>
-            <Link to="/register">
-              {/* <div className="navIcon">
-                <i className="fa fa-user-plus" aria-hidden="true" />
-              </div> */}
-              <div className={classes.NavItem}>
-                <span data-text="Register"> </span>
-                Register
-              </div>
-            </Link>
-          </li>
-        </ul>);
+              <Link to="/login">
+                <div className={classes.NavItem}>
+                  Login
+                </div>
+              </Link>
+            </li>
+            <li>
+              <Link to="/register">
+                <div className={classes.NavItem}>
+                  Join Now
+                </div>
+              </Link>
+            </li>
+        </div>  
+      </ul>);
         if (this.props.isLoggedIn){
           displayedElements = (<ul>
           <li>
             <Link to="/">
-              {/* <div className="navIcon">
-                <i className="fa fa-home" aria-hidden="true" />
-              </div> */}
               <div className={classes.NavItem}>
-                <span data-text="PiperChat"> </span>
                PiperChat
               </div>
               </Link>
           </li>
           <li>
             <Link to="/logout">
-              {/* <div className="navIcon">
-                <i className="fa fa-sign-out" aria-hidden="true" />
-              </div> */}
               <div className={classes.NavItem}>
-                <span data-text="Logout"> </span>
                 Logout
               </div>
             </Link>
           </li>
-          </ul>);
+          </ul>
+        );
         }
     return (
       <div className={classes.Navbar}>

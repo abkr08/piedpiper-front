@@ -9,6 +9,7 @@ const config = {};
 
 //connecting to our signaling server
 const conn = io('http://localhost:8082')
+// const conn = io('https://piedpiperchat.herokuapp.com:8082')
 const configuration = { 
     "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }]
 };

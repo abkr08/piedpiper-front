@@ -7,6 +7,8 @@ import Input from '../../UI/Input/Input';
 import { checkValidity, updateObject } from '../../../shared/utility';
 import Button from '../../UI/Button/Button'; 
 import ErrorBox from '../../UI/ErrorBox/ErrorBox';
+import Spinner from '../../UI/Spinner/Spinner'
+import swal from 'sweetalert2';
 
 class Login extends Component {
 
@@ -41,7 +43,8 @@ class Login extends Component {
         touched: false
     }
       },
-      formIsValid: false
+      formIsValid: false,
+      loading: false
   }
 
   onChange = (event, inputIdentifier) => {
@@ -62,6 +65,7 @@ class Login extends Component {
   };
 
   onSubmit = e => {
+    this.setState({ loading: true})
     e.preventDefault();
     const controls = {...this.state.controls}
     const data = {};
@@ -70,19 +74,32 @@ class Login extends Component {
     }
     this.props.onLogIn(data);
   };
+
+  comingSoon = () => {
+    swal.fire({
+      title: 'Coming soon',
+      icon: 'info',
+      showCloseButton: true,
+      focusConfirm: false,
+      confirmButtonText:
+        '<i class="fa fa-thumbs-up"></i> Great!'
+    })
+  }
+
   render() {
+    const { loading, controls, formIsValid } = this.state;
     let redirect = null;
     if (this.props.isLoggedIn){
       redirect = <Redirect to="/"/>;
     }
     let formElements = [];
-    for (let key in this.state.controls){
+    for (let key in controls){
       formElements.push({
         id: key,
-        config: this.state.controls[key]
+        config: controls[key]
       });
     }
-    const form = formElements.map(formElement => {
+    const form = formElements.sort((a,b) => a.id.localeCompare(b.id)).map(formElement => {
       return <Input 
                 key={formElement.id} elementType={formElement.config.elementType}
                 elementConfig={formElement.config.elementConfig}
@@ -98,10 +115,27 @@ class Login extends Component {
       {redirect}
         <h2> Login </h2>
         { this.props.error && <ErrorBox error={this.props.error}/> }
-        <form onSubmit={this.onSubmit}>
-          {form}
-          <Button btnType='Success' disabled={!this.state.formIsValid}>Log in</Button>
-        </form>
+          { loading && (
+          <span className={classes.MiniModal}><Spinner /></span>
+          )
+          }
+          <form onSubmit={this.onSubmit}>
+            {form}
+            <span>
+              <p onClick={() => this.props.history.push('/register')}>New to PiperChat?</p>
+              <p>Forgot Password?</p>
+              </span>
+            <Button btnType='Success' disabled={!formIsValid}>Login</Button>
+          </form>
+          <hr />
+          <div className={classes.LoginOptions}>
+            <h3>Login With</h3>
+            <span className={classes.LoginOptionsIcons}>
+              <span onClick={this.comingSoon}><i className='fab fa-linkedin' /></span>
+              <span onClick={this.comingSoon}><i className='fab fa-google' /></span>
+              <span onClick={this.comingSoon}><i className='fab fa-facebook' /></span>
+            </span>
+          </div>
       </div>
     );
   }

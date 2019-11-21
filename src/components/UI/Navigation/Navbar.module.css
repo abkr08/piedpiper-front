@@ -1,28 +1,26 @@
 .Navbar {
   width: 100%;
-  /* position: fixed;
-  /* top: 0;
-  left: 0; */
   z-index: 3;
   font-weight: 600;
   font-size: 20px;
-  box-shadow: 0 2px 3px #ccc;
+  /* box-shadow: 0 2px 3px #ccc; */
   display: flex;
   align-items: center;
-  /* position: relative;
-  z-index: 59999; */ 
 }
 
 .Navbar ul {
   width: 100%;
-  /* position: absolute; */
   top: 0%;
   left: 0%;
   margin: 0;
   padding: 20px 0;
-  background: #00BFA5;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.FloatedRight {
+  display: flex;
 }
 
 ul li {
@@ -31,14 +29,8 @@ ul li {
   display: block;
   /* border-right: 1px solid rgba(0, 0, 0, 0.2); */
 }
-ul li:last-child {
-  list-style: none;
-  text-align: center;
-  display: block;
-  border: none;
-}
 
-ul li a {
+a {
   color: whitesmoke;
   text-decoration: none;
   padding: 0 50px;
@@ -46,44 +38,20 @@ ul li a {
   transition: 0.5s;
 }
 
-ul li a:hover {
-  color: white;
-  text-decoration: none;
-  padding: 0 50px;
-  display: block;
-}
-
-ul li a .navIcon {
-  width: 40px;
-  height: 40px;
-  text-align: center;
-  overflow: hidden;
-  margin: 0 auto 10px;
-}
-
-ul li a .navIcon .fa {
-  width: 100%;
-  height: 100%;
-  line-height: 40px;
-  font-size: 34px;
-  transition: 0.5s;
-  color: rgb(150, 10, 127);
-}
-
-ul li a:hover .navIcon .fa {
-  transform: translateY(-100%);
-}
-
-ul li a .navIcon .fa:last-child {
-  color: #fff;
-}
-
-ul li a .NavItem {
+.NavItem {
   position: relative;
-  height: 20px;
   width: 100%;
   display: block;
+  border: 1px solid white;
+  padding: 10px;
+  border-radius: 25px;
 }
+
+.FloatedRight li:nth-last-child(1) .NavItem{
+  border: none;
+  background-color: #1ECD97;
+}
+
  .Brand {
   font-size: 1.2em;
   font-weight: 700;

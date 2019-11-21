@@ -1,8 +1,12 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #F4F7F8;
+  /* background-color: white; */
+  background-image: url('./assets/images/woman-writing-on-a-notebook-beside-teacup-and-tablet-733856.jpg');
   background-size: cover;
+  height: 100vh;
+  /* background-position: center; */
+  background-repeat: no-repeat;
   color: black;
 }
 .container {

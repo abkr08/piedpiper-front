@@ -146,7 +146,8 @@ class Register extends Component {
         <h2> Register </h2>
         <form onSubmit={this.onSubmit}>
           {form}
-          <Button btnType='Success' disabled={!this.state.formIsValid} >Register</Button>
+          <p onClick={() => this.props.history.push('/login')}>Already signed up?</p>
+          <Button btnType='Success' disabled={!this.state.formIsValid} >Join Now</Button>
         </form>
       </div>
     );
