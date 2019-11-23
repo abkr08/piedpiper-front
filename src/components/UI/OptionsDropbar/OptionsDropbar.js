@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 import classes from './OptionsDropbar.module.css';
 import * as chatActionCreators from '../../../store/actions/actionIndex';
 
@@ -34,6 +35,13 @@ class OptionsDropbar extends Component {
             case 'Delete chat':
                 this.props.deleteChat(this.props.roomId);
                 break;
+            case 'Log out':
+                this.props.history.push('/logout');
+                break;
+            case 'Profile':
+                this.props.showProfile();
+                this.props.hideOptions();
+                break;
             default:
                 break;
         }
@@ -46,13 +54,12 @@ class OptionsDropbar extends Component {
                 left: this.props.position.x - 200 + 'px'
                 }}>
                     {this.state.options.map((option, i) => {
-                        return <li key={i} onClick={(event)=>this.optionClicked(event, option)} >{option.name}</li>
+                        return <li key={option.name} onClick={ e => this.optionClicked(e, option)} >{option.name}</li>
                     })}
                 </ul>
             )
         }
         return options;
-        // <div className={classes.OptionsDropbar}>{options}</div>;
     }
 }
 const mapDispatchToProps = dispatch => {
@@ -60,4 +67,4 @@ const mapDispatchToProps = dispatch => {
         deleteChat: roomId => dispatch(chatActionCreators.deleteChat(roomId))
     }
 }
-export default connect(null, mapDispatchToProps)(OptionsDropbar);
+export default withRouter(connect(null, mapDispatchToProps)(OptionsDropbar));

@@ -5,6 +5,7 @@ import * as actionCreators from '../../../store/actions/actionIndex';
 import Input from '../../UI/Input/Input';
 import { checkValidity, updateObject} from '../../../shared/utility';
 import Button from '../../UI/Button/Button';
+import ErrorBox from '../../UI/ErrorBox/ErrorBox'
 
 class Register extends Component {
 
@@ -80,7 +81,8 @@ class Register extends Component {
           touched: false
       }
            },
-        formIsValid: false
+        formIsValid: false,
+        loading: false
   }
 
   onChange = (event, inputIdentifier) => {
@@ -101,33 +103,40 @@ class Register extends Component {
   };
 
   onSubmit = event => {
+    this.setState({ loading: true})
     event.preventDefault();
     let { password, password2} = this.state.controls;
-    console.log(password.value, password2.value)
-    if (password.value !== password2.value){
-      alert('passwords do not match');
-    } else {
+    console.log(password.value, password2.value);
+    // if (password.value !== password2.value){
+    //   alert('passwords do not match');
+    // } else {
     const controls = { ...this.state.controls };
     const data = {};
     for (let control in controls){
       data[control] = controls[control]['value'];
     }
     this.props.onRegister(data);
-    }
+    // }
     
   };
 
   componentDidUpdate () {
-    if (this.props.registrationSuccess){
-      this.props.history.push('/login');
+    const { loading } = this.state;
+    const { error, registrationSuccess, history } = this.props;
+    if (registrationSuccess){
+      history.push('/login');
+    } else if (error && loading){
+      this.setState({loading: false})
     }
   }
   render() {
+    const { loading, controls, formIsValid } = this.state;
+    const { error } = this.props;
     let formElements = [];
-    for (let key in this.state.controls){
+    for (let key in controls){
       formElements.push({
         id: key,
-        config: this.state.controls[key] 
+        config: controls[key] 
       });
     }
     let form = formElements.map(formElement => {
@@ -144,10 +153,26 @@ class Register extends Component {
     return (
       <div className={classes.RegisterBox}>
         <h2> Register </h2>
+        {error && <ErrorBox error={error}/>}
         <form onSubmit={this.onSubmit}>
           {form}
           <p onClick={() => this.props.history.push('/login')}>Already signed up?</p>
-          <Button btnType='Success' disabled={!this.state.formIsValid} >Join Now</Button>
+          <Button btnType='Success' disabled={!formIsValid} >
+          {
+                loading ? (
+                  <>  
+                    <span className={classes.LoadingText}>
+                      Joining...
+                    </span>
+                    <i className='fas fa-spinner fa-spin' />
+                  </>
+                ) : (
+                  <>
+                  Join Now
+                  </>
+                )
+              }
+          </Button>
         </form>
       </div>
     );
@@ -155,7 +180,8 @@ class Register extends Component {
 }
 const mapStateToProps = state => {
   return {
-    registrationSuccess: state.auth.registrationSuccess
+    registrationSuccess: state.auth.registrationSuccess,
+    error: state.auth.error,
   }
 }
 const mapDispatchToProps = dispatch => {

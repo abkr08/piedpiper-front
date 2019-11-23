@@ -3,20 +3,23 @@ import { connect } from 'react-redux';
 import Contact from './Contact';
 import Chat from './Chat';
 import classes from './ChatScreen.module.css';
-import SideDrawer from '../../components/UI/SideDrawer/SideDrawer';
+import Profile from '../../components/Profile/Profile';
 import ChatScreenBar from '../../components/ChatScreenBar/ChatScreenBar';
 import Modal from '../Modal/Modal';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import * as actionCreators from '../../store/actions/actionIndex';
+import OptionsDropbar from '../../components/UI/OptionsDropbar/OptionsDropbar';
 
-
+import placeholderImage from '../../assets/images/p37605.png'
 
 class ChatScreen extends Component {
 
     state = {
         text: '',
-        showSideDrawer: false,
-        contacts: []
+        showProfile: false,
+        contacts: [], 
+        position: {},
+        showOptions: false,
     }
     componentDidMount () {
         this.props.chatInit();
@@ -47,16 +50,27 @@ class ChatScreen extends Component {
         this.setState({text: ''});
     }
 
-   toggleSideDrawer = () => {
+   toggleProfile = () => {
         this.setState(prevState => {
-            return {showSideDrawer: !prevState.showSideDrawer}});
+            return {showProfile: !prevState.showProfile}});
     }
 
     componentDidUpdate () {
         this.scrollToBottom();
     }
-    render () {  
-        console.log(this.state.contacts);
+
+    showOptions = event => {
+        let pos = {...this.state.position};
+        pos.x = event.clientX;
+        pos.y = event.clientY;
+        this.setState({showOptions: true, position: pos})
+    }
+
+    hideOptions = () => {
+        this.setState({showOptions: false, position:{}})
+    }
+
+    render () {
         let chat = <Modal show={true}>
                         <Spinner />
                     </Modal>
@@ -86,15 +100,39 @@ class ChatScreen extends Component {
                 <div className={classes.Chat}></div>
             );
         }
+        let optionsDropbar = null;
+        if (this.state.showOptions){
+            optionsDropbar = (
+                <OptionsDropbar hideOptions={this.hideOptions} 
+                position={this.state.position} 
+                show={this.state.showOptions}
+                showProfile={this.toggleProfile}
+                options={
+                    [
+                        {name: 'New group'},
+                        {name: 'Profile'},
+                        {name: 'Log out'},
+                    ]
+                }
+                />
+            )
+        }
         let contactsPane = null;
         if (this.props.chatkitUser){
             contactsPane = (
                 <div className={classes.ContactsPane} >
-                <SideDrawer show={this.state.showSideDrawer} 
+                <Profile show={this.state.showProfile}
+                hideProfile={this.toggleProfile}
                 user={this.props.chatkitUser}
                 />
                 <div className={classes.MenuBar}>
-                    <i onClick = {this.toggleSideDrawer} className="fa fa-bars"></i>
+                    <span onClick={this.toggleProfile}
+                    className={classes.MenuImageContainer}
+                    >
+                        <img src={placeholderImage} alt='' />
+                    </span>
+                    <i className='fa fa-ellipsis-v' onClick={this.showOptions}></i>
+                    {optionsDropbar}
                 </div>
                 <h1 style={{textAlign: 'center'}}>Contacts</h1>
                 {this.props.contacts.length && this.props.contacts.map(con => {

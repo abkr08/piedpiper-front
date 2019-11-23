@@ -39,15 +39,18 @@ class ChatScreenBar extends Component {
     render() {
         let optionsDropbar = null;
         if (this.state.showOptions){
-           optionsDropbar = <OptionsDropbar hideOptions={this.hideOptions} 
-                                position={this.state.position} 
-                                show={this.state.showOptions} 
-                                options={[{name: 'Contact info'},
-                                {name: 'Select messages'},
-                                {name: 'Mute'},
-                                {name: 'Clear messages'},
-                                {name: 'Delete chat'}
-                                ]}/>
+           optionsDropbar = (
+                <OptionsDropbar hideOptions={this.hideOptions} 
+                position={this.state.position} 
+                show={this.state.showOptions} 
+                options={[{name: 'Contact info'},
+                {name: 'Select messages'},
+                {name: 'Mute'},
+                {name: 'Clear messages'},
+                {name: 'Delete chat'}
+                ]}
+                />
+           )
               
         }
         return (
@@ -61,7 +64,7 @@ class ChatScreenBar extends Component {
                     <i onClick={this.onVoiceCallInit} className="fa fa-phone"></i>
                     </React.Fragment>
                     }
-                    <i className='fa fa-ellipsis-v' onClick={event => this.showOptions(event)}></i>
+                    <i className='fa fa-ellipsis-v' onClick={this.showOptions}></i>
                     {optionsDropbar}
                </div>
                <Modal show={this.state.showModal}>

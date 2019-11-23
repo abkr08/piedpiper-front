@@ -18,8 +18,15 @@ const checkTokenValidity = expiresIn => {
         }, expiresIn * 1000);
     }
 }
+
+const onAuthInit = () => {
+    return {
+        type: actionTypes.ON_AUTH_INIT
+    }
+}
 export const onLogIn = (data) => {
     return dispatch => {
+        dispatch(onAuthInit())
         axios.post("/login", data)
          .then(res => {
            const { userId, token, expiresIn } = res.data;
@@ -85,7 +92,6 @@ export const checkAuthState = () => {
 const registered = () => {
     return {
         type: actionTypes.ON_REGISTER,
-        
     }
 }
 const registrationFailed = err => {
@@ -96,9 +102,13 @@ const registrationFailed = err => {
 }
 export const onRegister = data => {
     return dispatch => {
+        dispatch(onAuthInit())
         axios.post("/register", data)
             .then(res => {
-                dispatch(registered())
+                const { userId, token, expiresIn } = res.data;
+                dispatch(registered(res))
+                dispatch(authSuccess(token, userId))
+                dispatch(checkTokenValidity(expiresIn));
             })
             .catch(err => {
                 dispatch(registrationFailed(err))

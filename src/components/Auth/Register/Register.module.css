@@ -27,3 +27,8 @@
   margin-bottom: 15px 0;
   cursor: pointer;
 }
+
+.LoadingText {
+  font-style: italic;
+  margin-right: 4px;
+}

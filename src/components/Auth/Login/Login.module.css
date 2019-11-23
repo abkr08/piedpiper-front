@@ -19,7 +19,7 @@
     text-align: center;
     margin: 0 auto;
   }
-.Login form span {
+.AuthOptions {
     display: flex;
     justify-content: space-between;
     color: white;
@@ -48,6 +48,10 @@ hr {
     margin-right: 20px;
 }
 
+.LoadingText {
+    font-style: italic;
+    margin-right: 4px;
+}
 
 .MiniModal {
 position: fixed;

@@ -6,6 +6,7 @@ import classes from "./Navbar.module.css";
 
 class Navbar extends Component {
   render() {
+    const { isLoggedIn } = this.props;
     let displayedElements = (
       <ul>
         <div>
@@ -34,11 +35,11 @@ class Navbar extends Component {
             </li>
         </div>  
       </ul>);
-        if (this.props.isLoggedIn){
+        if (isLoggedIn){
           displayedElements = (<ul>
           <li>
             <Link to="/">
-              <div className={classes.NavItem}>
+              <div className={classes.Brand}>
                PiperChat
               </div>
               </Link>
@@ -54,7 +55,7 @@ class Navbar extends Component {
         );
         }
     return (
-      <div className={classes.Navbar}>
+      <div className={classes.Navbar} style={ isLoggedIn ? {display: 'none' } : null}>
         {displayedElements}
       </div>
     );

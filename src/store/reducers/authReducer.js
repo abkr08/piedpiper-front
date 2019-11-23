@@ -9,6 +9,10 @@ const initialState = {
 
 const authReducer = (state = initialState, action) => {
     switch (action.type) {
+        case actionTypes.ON_AUTH_INIT:
+            return {
+                ...state, error: null
+            }
         case actionTypes.LOG_IN:
            return {
                ...state, token: action.token, userId: action.userId, error: null
@@ -25,10 +29,14 @@ const authReducer = (state = initialState, action) => {
             return {
                 ...state, registrationSuccess: true
             }
-        case actionTypes.LOG_IN_FAILED: 
-        return {
-            ...state, error: action.error
-        }
+        case actionTypes.LOG_IN_FAILED:
+            return {
+                ...state, error: action.error
+            }
+        case actionTypes.ON_REGISTRATION_FAILED:
+            return {
+                ...state, error: action.error
+            }
         default: 
             return state;
     }

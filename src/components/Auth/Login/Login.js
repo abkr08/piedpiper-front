@@ -7,7 +7,6 @@ import Input from '../../UI/Input/Input';
 import { checkValidity, updateObject } from '../../../shared/utility';
 import Button from '../../UI/Button/Button'; 
 import ErrorBox from '../../UI/ErrorBox/ErrorBox';
-import Spinner from '../../UI/Spinner/Spinner'
 import swal from 'sweetalert2';
 
 class Login extends Component {
@@ -47,6 +46,14 @@ class Login extends Component {
       loading: false
   }
 
+  componentDidUpdate () {
+    const { error } = this.props;
+    const { loading } = this.state;
+    if (error && loading){
+      this.setState({loading: false})
+    }
+  }
+
   onChange = (event, inputIdentifier) => {
     const { value } = event.target;
     const updatedFormElement = updateObject(this.state.controls[inputIdentifier], {
@@ -65,6 +72,7 @@ class Login extends Component {
   };
 
   onSubmit = e => {
+    const { onLogIn } = this.props;
     this.setState({ loading: true})
     e.preventDefault();
     const controls = {...this.state.controls}
@@ -72,7 +80,7 @@ class Login extends Component {
     for (let control in controls){
       data[control] = controls[control]['value'];
     }
-    this.props.onLogIn(data);
+    onLogIn(data);
   };
 
   comingSoon = () => {
@@ -88,8 +96,9 @@ class Login extends Component {
 
   render() {
     const { loading, controls, formIsValid } = this.state;
+    const { error, isLoggedIn, history } = this.props
     let redirect = null;
-    if (this.props.isLoggedIn){
+    if (isLoggedIn){
       redirect = <Redirect to="/"/>;
     }
     let formElements = [];
@@ -114,18 +123,29 @@ class Login extends Component {
       <div className={classes.Login}>
       {redirect}
         <h2> Login </h2>
-        { this.props.error && <ErrorBox error={this.props.error}/> }
-          { loading && (
-          <span className={classes.MiniModal}><Spinner /></span>
-          )
-          }
+        { error && <ErrorBox error={error}/> }
           <form onSubmit={this.onSubmit}>
             {form}
-            <span>
-              <p onClick={() => this.props.history.push('/register')}>New to PiperChat?</p>
+            <span className={classes.AuthOptions}>
+              <p onClick={() => history.push('/register')}>New to PiperChat?</p>
               <p>Forgot Password?</p>
-              </span>
-            <Button btnType='Success' disabled={!formIsValid}>Login</Button>
+            </span>
+            <Button btnType='Success' disabled={!formIsValid}>
+            {
+                loading ? (
+                  <>  
+                    <span className={classes.LoadingText}>
+                      Logging in...
+                    </span>
+                    <i className='fas fa-spinner fa-spin' />
+                  </>
+                ) : (
+                  <>
+                  Login
+                  </>
+                )
+              }
+            </Button>
           </form>
           <hr />
           <div className={classes.LoginOptions}>

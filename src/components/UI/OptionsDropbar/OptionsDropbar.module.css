@@ -15,8 +15,10 @@
 .OptionsDropbar li {
     color: black;
     padding: 12px 16px;
+    font-size: 1.1em;
     display: block;
     text-align: left !important;
+    cursor: pointer;
 }
 
 .OptionsDropbar li:hover {

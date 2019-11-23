@@ -1,3 +1,4 @@
+export const ON_AUTH_INIT = 'ON_AUTH_INIT';
 export const LOG_IN = "LOG_IN";
 export const LOG_OUT = "LOG_OUT";
 export const LOG_IN_FAILED = "LOG_IN_FAILED";

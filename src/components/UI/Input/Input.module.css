@@ -28,10 +28,14 @@
   }
 .InputElement:focus {
     outline: none;
-    background-color: white;
 }
 
 .Invalid {
-    border: 1px solid red;
-    background-color: salmon;
+    border: 1px solid #721c24;
+    background-color: #F8D7DA;
+    color: #721c24;
+}
+
+.Invalid::placeholder {
+    color: #721c24;
 }
