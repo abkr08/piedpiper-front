@@ -1,6 +1,6 @@
 .Call {
     position: relative;
-    width: 80%;
+    width: 100%;
     box-sizing: border-box;
     display: flex;
     flex-flow: column;
@@ -8,19 +8,21 @@
 }
 .videoContainer {
     display: inline-block;
-    width: 800px;
-    height: 450px;
+    /* width: 800px; */
+    width: 100%;
+    height: 100%;
+    /* height: 450px; */
     margin: 0px auto;
-    border: 2px solid #645cff;
+    /* border: 2px solid #645cff; */
     position: relative;
-    box-shadow: 1px 1px 11px #9e9e9e;
+    /* box-shadow: 1px 1px 11px #9e9e9e; */
 }
 .RemoteVideo {
     /* min-width: 500px;
     border-radius: 12px;
     height: 400px;
     object-fit: fill; */
-    position: absolute;
+    position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
@@ -29,22 +31,49 @@
     height: 100%;
     z-index: 1;
 }
-.Buttons {
-    text-align: center;
-}
+
 .LocalVideo {
-    /* position: absolute;
+     position: absolute;
     width: 100px;
     right: 5%;
     top: 10%;
     border-radius: 7px;
-    height: 80px; */
+    height: 80px;
     width: 150px;
     height: 85px;
     position: absolute;
     right: 20px;
     top: 20px;
-    border: 2px solid #645cff;
     border-radius: 6px;
     z-index: 2;
+}
+
+video {
+    object-fit: cover;
+}
+
+.CallButtons {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    left: 45%;
+    bottom: 5%;
+    z-index: 20;
+}
+
+.EndCallBtn, .MuteBtn {
+    display: flex;
+    padding: 20px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-right: 20px; 
+}
+
+.EndCallBtn {
+    background-color: #E61A23;
+}
+.MuteBtn {
+    background-color: rgba(250, 250, 250, 0.4);
 }

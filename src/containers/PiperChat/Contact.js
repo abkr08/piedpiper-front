@@ -51,7 +51,7 @@ const contact = props => {
                 <div className={classes.ContactDetails}>
                     <div className={classes.FloatedLeft}>
                         <span>{props.room.name}</span>
-                        <span className={classes.LastMessage}>Ruqee: Love you too babe.{/*props.lastMessage*/}</span>
+                        <span className={classes.LastMessage}>Honey: Love you too babe.{/*props.lastMessage*/}</span>
                     </div>
                     <div className={classes.FloatedRight}>
                         <span className={classes.LastUpdated}>{formatDate(props.room.updatedAt)}</span>

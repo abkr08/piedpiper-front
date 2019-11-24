@@ -9,7 +9,8 @@ const initialState = {
     caller: null,
     callOngoing: false,
     callStarted: false,
-    callEnded: false
+    callEnded: false,
+    error: null
 }
 
 const callReducer = (state = initialState, action) => {
@@ -47,7 +48,11 @@ const callReducer = (state = initialState, action) => {
             }
         case actionTypes.END_CALL: 
             return {
-                ...state, callOngoing: false, incomingCall: false, callEnded: true, callStarted: false
+                ...state, callOngoing: false, incomingCall: false, callEnded: true, callStarted: false, error: null
+            }
+        case actionTypes.ON_ERROR:
+            return {
+                ...state, error: action.error
             }
         default: 
         return state;

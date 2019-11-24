@@ -1,15 +1,17 @@
 import React, { Component} from 'react';
+import swal from 'sweetalert2';
 import classes from './Call.module.css';
 import { connect } from 'react-redux';
 import * as callActionCreators from '../../store/actions/actionIndex'
+import { getSVG } from '../../shared/utility';
 
-import Button from '../../components/UI/Button/Button';
 
 class Call extends Component {
     
     state = {
           id: null,
-          room: null
+          room: null,
+          isPlaying: false
     }
        
     componentDidMount (){
@@ -40,19 +42,38 @@ class Call extends Component {
    
     
     
-    componentDidUpdate () {
-        if (this.props.callType === 'video'){
-            this.localVideoRef.srcObject = this.props.localStream;
-            this.remoteVideoRef.srcObject = this.props.remoteStream;
+    async componentDidUpdate () {
+        const { 
+            error, endCall, closeModal, 
+            callType, localStream, 
+            remoteStream 
+        } = this.props;
+        
+        if (callType === 'video'){
+            this.localVideoRef.srcObject = remoteStream ? localStream : null;
+            this.remoteVideoRef.srcObject = remoteStream ? remoteStream : localStream;
         } else {
-            this.localAudioRef.srcObject = this.props.localStream;
-            this.remoteAudioRef.srcObject = this.props.remoteStream;
+            this.localAudioRef.srcObject = localStream;
+            this.remoteAudioRef.srcObject = remoteStream;
+        }
+        if (error){
+            const confirmed = await swal.fire({
+                title: error.toString(),
+                icon: 'error',
+                showCloseButton: true,
+            });
+            if (confirmed.value){
+                endCall();
+                closeModal();
+            }
         }
     }
        
-    render () {
+    render () { 
+        const { callType, remoteStream, localStream } = this.props;
+        // if(this.remoteVideoRef){console.log(this.remoteVideoRef, this.remoteVideoRef.src)};
         let call = null;
-        if (this.props.callType === 'video'){
+        if (callType === 'video'){
             call = (
                 <React.Fragment>
                     <div className={classes.videoContainer}>
@@ -60,10 +81,22 @@ class Call extends Component {
                             ref={(lVid)=> this.localVideoRef = lVid}>
                         </video>
 
-                        <video className={classes.RemoteVideo} autoPlay  
+                        <video className={classes.RemoteVideo} autoPlay muted={!remoteStream}
                         ref={(rVid)=> this.remoteVideoRef = rVid}>
                         </video>
                     </div>
+                    { (localStream || remoteStream) &&
+                        <div className={classes.CallButtons}>
+                            <span  onClick={this.endCall} 
+                            className={classes.EndCallBtn}>
+                                {getSVG('endCall', 'white', '50', '50')}
+                            </span>
+                            <span  onClick={this.endCall} 
+                            className={classes.MuteBtn}>
+                            {getSVG('microphone', 'white', '50', '50')}
+                            </span>
+                        </div>
+                    }
                 </React.Fragment>
             );
         } else {
@@ -77,10 +110,6 @@ class Call extends Component {
         return (
             <div className={classes.Call}>
                 {call}
-                <div className={classes.Buttons}>
-                    {/* <span style={{color: 'red'}}><i class="fas fa-window-close"></i></span> */}
-                    <Button clicked={this.endCall} btnType='Danger'>End Call</Button>
-                </div>
             </div>
         )
     }
@@ -92,7 +121,8 @@ const mapStateToProps = state => {
         remoteStream: state.call.remoteStream,
         localStream: state.call.localStream,
         incomingCall: state.call.incomingCall,
-        caller: state.call.caller
+        caller: state.call.caller,
+        error: state.call.error
     }
 }
 const mapDispatchToProps = dispatch => {

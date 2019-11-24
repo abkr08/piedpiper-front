@@ -14,6 +14,7 @@ export const ON_TRACK = 'ON_TRACK';
 export const ON_LOCAL_STREAM = 'ON_LOCAL_STREAM';
 export const ON_INCOMING_CALL = 'ON_INCOMING_CALL';
 export const END_CALL = 'END_CALL';
+export const ON_ERROR = 'ON_ERROR';
 
 export const CHAT_INIT_SUCCESS = 'CHAT_INIT_SUCCESS';
 export const FETCH_MESSAGES_SUCCESS = 'FETCH_MESSAGES_SUCCESS';

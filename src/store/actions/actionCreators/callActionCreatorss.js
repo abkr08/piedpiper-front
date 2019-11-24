@@ -1,8 +1,8 @@
 import { store }  from '../../../index';
 import * as actionTypes from '../actions';
 import io from 'socket.io-client'; 
+import swal from 'sweetalert2';
 
-let name; 
 let connectedUser;
 const userId = localStorage.getItem('userId');
 const config = {};
@@ -13,14 +13,10 @@ const conn = io('http://localhost:8082')
 const configuration = { 
     "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }]
 };
-const offerOptions = {
-    offerToReceiveAudio: 1,
-    offerToReceiveVideo: 1
-};
+
 let yourConn;
 let stream = null;
 
-console.log(conn);
 conn.on('connection', function () { 
    console.log("Connected to the signaling server"); 
 });
@@ -82,7 +78,7 @@ conn.on('message', function (msg) {
    }
 });
   
-conn.onerror = function (err) { 
+conn.onerror = err => { 
    console.log("Got error", err); 
 };
 
@@ -95,7 +91,7 @@ const createOffer = to => {
         }); 
             
         yourConn.setLocalDescription(offer); 
-        }, function (error) { 
+        }, error => { 
         alert("Error when creating an offer"); 
         });
 }
@@ -134,12 +130,11 @@ function send(message) {
 
 const getMedia = () => {
     return navigator.mediaDevices.getUserMedia({
-        video: {width: 1280,
+        video: {
+            width: 1280,
                 height: 720,
-                frameRate: 15},
-        // config.callType === 'video' ? {width: 1280,
-        //     height: 720,
-        //     frameRate: 15}: false,
+                frameRate: 15
+            },
         audio: true
       });
 }
@@ -153,11 +148,8 @@ export const callUser = (user, type) => {
         
         //when a remote user adds stream to the peer connection, we display it 
         yourConn.ontrack = function (stream) { 
-            console.log('got remote stream');
-            console.log(stream)
         store.dispatch(onTrack(stream));
         };
-        console.log(yourConn);
         // Setup ice handling 
         yourConn.onicecandidate = function (event) { 
         if (event.candidate) { 
@@ -168,18 +160,27 @@ export const callUser = (user, type) => {
         } 
         }
         getMedia().then(gotStream)
-        .catch(e => console.log(`getUserMedia() error: ${e}`));
-        dispatch({type: actionTypes.CALL_INIT})
-        send({
-            type: 'requestToCall',
-            from: userId,
-            to: connectedUser
-        })        
+        .catch(e => {
+            dispatch(onError(e));
+            console.log(`getUserMedia() error: ${e}`)
+        });       
     }
-  }  
+  }
+
+  const onError = err => {
+      return {
+          type: actionTypes.ON_ERROR,
+          error: err
+      }
+  }
 
 const gotStream = myStream => {
-    console.log('Received local stream');
+    store.dispatch({type: actionTypes.CALL_INIT})
+    send({
+        type: 'requestToCall',
+        from: userId,
+        to: connectedUser
+    }) 
     stream = myStream;
     store.dispatch(onLocalStream(myStream));
     myStream.getTracks().forEach(track => {
@@ -207,7 +208,7 @@ function handleOffer(offer, name) {
      
     //create an answer to an offer 
     console.log('Creating and sending answer to ' + connectedUser);
-    yourConn.createAnswer(function (answer) { 
+    yourConn.createAnswer(answer => { 
         yourConn.setLocalDescription(answer); 
         send({ 
             type: "answer", 
@@ -215,7 +216,7 @@ function handleOffer(offer, name) {
             from: name 
        }); 
          
-    }, function (error) { 
+    }, error => { 
        alert("Error when creating an answer"); 
     }); 
 }
