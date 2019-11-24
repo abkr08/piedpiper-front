@@ -55,21 +55,26 @@ class ChatScreenBar extends Component {
         }
         return (
             <div className={classes.ChatScreenBar}>
-            <div>
-                   <img src='https://ichef.bbci.co.uk/images/ic/720x405/p0517py6.jpg' alt=''/>
-                   <span>{this.props.room.name}</span>
+                <div className={classes.FloatedRight}>
+                   <img src={this.props.room.customData.displayImage} alt=''/>
+                   <span className={classes.RoomDetails}>
+                    <span className={classes.RoomName}>{this.props.room.name}</span>
+                    { this.props.room.isPrivate &&
+                        (<span className={classes.RoomMembers}>
+                            Ahmed, Aunty Hauwa, Aunty Lami, Hajju
+                        </span>)
+                    }
+                   </span>
                </div>
                <div className={classes.FA}>
                     {  this.props.room.isPrivate &&  
                     <>
-                        {/* <i onClick={this.onVideoCallInit} className="fa fa-video"></i> */}
                         <span onClick={this.onVideoCallInit}>
                         <svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" 
                         viewBox="0 0 16 20" width="24" height="28">
                             <path fill="#263238" fillOpacity=".4" d="M15.243 5.868l-3.48 3.091v-2.27c0-.657-.532-1.189-1.189-1.189H1.945c-.657 0-1.189.532-1.189 1.189v7.138c0 .657.532 1.189 1.189 1.189h8.629c.657 0 1.189-.532 1.189-1.189v-2.299l3.48 3.09v-8.75z" />
                         </svg>
                         </span>
-                        {/* <i onClick={this.onVoiceCallInit} className="fa fa-phone"></i> */}
                         <span onClick={this.onVoiceCallInit}>
                             <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -84,24 +89,23 @@ class ChatScreenBar extends Component {
                                 id="path3017"
                                 fill="#263238" fillOpacity=".4"
                                 />
-
                             </svg>
                         </span>
                     </>
                     }
-                    {/* <i className='fa fa-ellipsis-v' onClick={this.showOptions}></i> */}
                     <span onClick={this.showOptions}>
                     <svg id="Layer_1" 
                     xmlns="http://www.w3.org/2000/svg" 
                     viewBox="0 0 24 24" width="24" 
-                    height="24"><path fill="#263238" 
-                    fillOpacity=".6" d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z">
-                    </path>
+                    height="24">
+                        <path fill="#263238" 
+                        fillOpacity=".6" d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z">
+                        </path>
                     </svg>
                     </span>
                     {optionsDropbar}
-               </div>
-               <Modal show={this.state.showModal}>
+                </div>
+                <Modal show={this.state.showModal}>
                     {this.state.callType ? 
                         <Call callTo={this.props.room.name} closeModal={this.endCall} callType={this.state.callType}/> : 
                         null

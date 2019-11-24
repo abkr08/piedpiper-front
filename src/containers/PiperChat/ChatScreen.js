@@ -79,7 +79,7 @@ class ChatScreen extends Component {
         if (this.props.currentRoom){
             chat = (
             <div className={classes.Chat}>
-                <div className={classes.BackgroundImage}/>
+                <div className={classes.BackgroundImage} />
                 <ChatScreenBar room={this.props.currentRoom} endCall={this.props.endCall}/>
                 <div className={classes.Msgs} ref={(div) => {this.scrollRef = div}}>
                 {
@@ -120,7 +120,11 @@ class ChatScreen extends Component {
                 />
             )
         }
-        let contactsPane = null;
+        let contactsPane = (
+            <Modal show={true}>
+                <Spinner />
+            </Modal>
+        );
         if (this.props.chatkitUser){
             contactsPane = (
                 <div className={classes.ContactsPane} >
@@ -134,7 +138,6 @@ class ChatScreen extends Component {
                     >
                         <img src={placeholderImage} alt='' />
                     </span>
-                    {/* <i className='fa fa-ellipsis-v' onClick={this.showOptions}></i> */}
                     <span onClick={this.showOptions}>
                     <svg id="Layer_1" 
                     xmlns="http://www.w3.org/2000/svg" 

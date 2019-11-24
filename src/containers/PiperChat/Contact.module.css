@@ -38,10 +38,11 @@
 
 .FloatedRight {
     display: flex;
-    flex-flow: row;
-    align-items: center;
+    flex-flow: column;
+    align-items: flex-end;
+    justify-content: space-around;
     margin-right: 9px;
-    padding-right: 15px;
+    padding-right: 10px;
     text-align: right;
 }
 
@@ -55,11 +56,22 @@
 }
 
 .LastMessage {
-    color: #4e4e4e;
+    color: rgba(0,0,0,.4);
     font-weight: 400;
     font-size: 14px;
     text-transform: none;
     margin-top: 5px;
+}
+
+.UnreadMessagesContainer {
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+}
+
+.LastUpdated {
+    color: rgba(0,0,0,.4);
+    font-size: 12px;
 }
 
 .FloatedRight i {
@@ -67,6 +79,7 @@
     font-size: 1.3rem;
     width: 1.4rem;
     transition: opacity .2s;
+    color: rgba(0,0,0,.4);
 }
 
 .Contact:hover .FloatedRight i {

@@ -17,12 +17,30 @@
     align-items: center;
     justify-content: space-between;
 }
-.ChatScreenBar div {
+.ChatScreenBar .FloatedRight {
     display: flex;
     flex-flow: row;
     font-size: 0.9em;
     text-transform: capitalize;
 }
+
+.RoomDetails {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+}
+
+.RoomName {
+    font-weight: 600;
+    font-size: 0.8em;
+}
+
+.RoomMembers {
+    font-size: 1em;
+    color: #4e4e4e;
+    font-size: 0.55em;
+}
+
 img {
     height: 45px;
     width: 45px;
