@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Contact from './Contact';
+import NoContacts from '../../components/NoContacts/NoContacts'
 import Chat from './Chat';
 import classes from './ChatScreen.module.css';
 import Profile from '../../components/Profile/Profile';
@@ -9,6 +10,7 @@ import Modal from '../Modal/Modal';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import * as actionCreators from '../../store/actions/actionIndex';
 import OptionsDropbar from '../../components/UI/OptionsDropbar/OptionsDropbar';
+import Search from '../../components/Search/Search';
 
 import placeholderImage from '../../assets/images/p37605.png'
 
@@ -77,6 +79,7 @@ class ChatScreen extends Component {
         if (this.props.currentRoom){
             chat = (
             <div className={classes.Chat}>
+                <div className={classes.BackgroundImage}/>
                 <ChatScreenBar room={this.props.currentRoom} endCall={this.props.endCall}/>
                 <div className={classes.Msgs} ref={(div) => {this.scrollRef = div}}>
                 {
@@ -131,21 +134,34 @@ class ChatScreen extends Component {
                     >
                         <img src={placeholderImage} alt='' />
                     </span>
-                    <i className='fa fa-ellipsis-v' onClick={this.showOptions}></i>
+                    {/* <i className='fa fa-ellipsis-v' onClick={this.showOptions}></i> */}
+                    <span onClick={this.showOptions}>
+                    <svg id="Layer_1" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" width="24" 
+                    height="24"><path fill="#263238" 
+                    fillOpacity=".6" d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z">
+                    </path>
+                    </svg>
+                    </span>
                     {optionsDropbar}
                 </div>
-                <h1 style={{textAlign: 'center'}}>Contacts</h1>
-                {this.props.contacts.length && this.props.contacts.map(con => {
-                    return <Contact key={con.id} name={con.name} 
-                                room={con}
-                                user={this.props.userId}
-                                unopenedMessages={this.props.unopenedMessages}
-                                Active={this.props.currentRoom ? 
-                                    con.id === this.props.currentRoom.id : 
-                                    false } 
-                                clicked={() => this.getMessages(con)}
-                            />
-                })}
+                <Search />
+                {
+                    this.props.contacts.length ? this.props.contacts.map(con => {
+                        return <Contact key={con.id} name={con.name} 
+                                    room={con}
+                                    user={this.props.userId}
+                                    unopenedMessages={this.props.unopenedMessages}
+                                    Active={this.props.currentRoom ? 
+                                        con.id === this.props.currentRoom.id : 
+                                        false } 
+                                    clicked={() => this.getMessages(con)}
+                                />
+                    }) : (
+                        <NoContacts />
+                    )
+                }
                 </div>
             );
             

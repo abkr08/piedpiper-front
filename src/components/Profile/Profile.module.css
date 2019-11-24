@@ -25,18 +25,6 @@
     transform: translateX(-100%);
 }
 
-.ProfileTabBar {
-    height: 110px;
-    display: flex;
-    flex-flow: row;
-    align-items: flex-end;
-    padding: 25px;
-    font-size: 1.1em;
-    font-weight: 600;
-    box-sizing: border-box;
-    background-color: #1ECD97;
-}
-
 .Close .ProfileImage {
     display: none;
 }
@@ -87,9 +75,7 @@
     text-align: center;
     font-size: 1.2em;
 }
-.CameraIcon i {
-    margin-right: 0 !important;
-}
+
 .ChangeImageText {
     font-size: 0.8em;
     width: 100px;
@@ -167,6 +153,7 @@
 
   .About h3, .SocialProfiles h3 {
       margin: 4px 0;
+      text-align: center;
   }
 
   .About span {

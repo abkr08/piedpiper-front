@@ -1,0 +1,77 @@
+.Search {
+    background-color: #F8F8F8;
+    height: 50px;
+    padding: 5px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #4e4e4e;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+.SearchLabel input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    padding: 10px;
+    width: 80%;
+}
+
+.SearchLabel {
+    position: absolute;
+    background-color: white;
+    border-radius: 20px;
+    width: 90%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0 32px 0 65px;
+    box-sizing: border-box;
+}
+
+.SearchBtn i {
+    position: absolute;
+    top: 13px;
+    left: 15px;
+}
+
+.BackBtn i {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+}
+
+.BackBtn {
+    display: none;
+    color: #1ECD97;
+    transition: all .2s ease;
+}
+
+.SubmitBtn i {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+}
+
+.SubmitBtn {
+    color: #1ECD97;
+    transition: all .2s ease;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotateZ(-90deg);
+    }
+}
+
+.Search:focus-within  {
+   background-color: white;
+   box-shadow: rgba(0, 0, 0, .2) 1px 1px 1px;
+}
+.Search:focus-within .BackBtn {
+    display: block;
+}
+.Search:focus-within .SearchBtn {
+    display: none;
+}

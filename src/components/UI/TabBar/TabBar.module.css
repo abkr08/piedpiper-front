@@ -1,0 +1,19 @@
+.TabBar {
+    height: 110px;
+    display: flex;
+    flex-flow: row;
+    align-items: flex-end;
+    padding: 25px;
+    font-size: 1.2em;
+    font-weight: 600;
+    box-sizing: border-box;
+    background-color: #1ECD97;
+    color: white;
+    font-style: normal;
+}
+
+.TabBar i {
+    margin-right: 20px;
+    font-size: 1.2em;
+    cursor: pointer;
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import classes from './Contact.module.css';
 import img from '../../assets/images/p37605.png'
 import { connect } from 'react-redux';
@@ -11,7 +11,7 @@ const contact = props => {
     const showOptionsHandler = event => {
         event.stopPropagation();
         let pos = {};
-        pos.x = event.clientX + 200;
+        pos.x = event.clientX + 155;
         pos.y = event.clientY;
         toggleShowOptions(true);
         updatePosition(pos)
@@ -30,28 +30,33 @@ const contact = props => {
     }
     let contact = null;
     if (props.room){
-        contact = (<div className={attachedClasses.join(' ')} onClick={props.clicked}>
-        <span className={classes.ImageContainter}><img src={img} alt=''/></span>
-        <div>
-            <p>{props.room.name}</p>
-            <p>{props.lastMessage}</p>
-        </div>
-        <div className={classes.FloatedRight}>
-            <span>{unreadMessages}</span>
-            <i onClick={showOptionsHandler} className="fa fa-angle-down"></i>
-            { showOptions && 
-                <OptionsDropbar position={position} 
-                        roomId={props.room.id}
-                        show={showOptions} 
-                        hideOptions={hideOptions}
-                        options={[{name: 'Archive chat'},
-                        {name: 'Mute'},
-                        {name: !props.room.isPrivate ? 'Exit group':'Delete chat'},
-                        {name: 'Pin chat'},
-                        {name: 'Mark as unread'}
-                        ]}/>}
-        </div>
-    </div>
+        contact = (
+            <div className={attachedClasses.join(' ')} onClick={props.clicked}>
+                <span className={classes.ImageContainter}><img src={img} alt=''/></span>
+                <div className={classes.ContactDetails}>
+                    <div className={classes.FloatedLeft}>
+                        <span>{props.room.name}</span>
+                        <span className={classes.LastMessage}>Ruqee: Love you too babe.{/*props.lastMessage*/}</span>
+                    </div>
+                    <div className={classes.FloatedRight}>
+                        <span className={classes.UnreadMessages}>{unreadMessages || 8}</span>
+                        <i onClick={showOptionsHandler} className="fa fa-angle-down"></i>
+                        { showOptions && 
+                            <OptionsDropbar position={position} 
+                            roomId={props.room.id}
+                            show={showOptions} 
+                            hideOptions={hideOptions}
+                            options={[{name: 'Archive chat'},
+                            {name: 'Mute'},
+                            {name: !props.room.isPrivate ? 'Exit group':'Delete chat'},
+                            {name: 'Pin chat'},
+                            {name: 'Mark as unread'}
+                            ]}
+                            />
+                        }
+                    </div>
+                </div>
+            </div>
         )
     }
     return contact; 

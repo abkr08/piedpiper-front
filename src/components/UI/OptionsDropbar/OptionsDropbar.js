@@ -51,7 +51,7 @@ class OptionsDropbar extends Component {
         if (this.props.show){
             options = (
                 <ul ref={ ul => this.optionsRef = ul} className={classes.OptionsDropbar} style={{top: this.props.position.y  + 'px',
-                left: this.props.position.x - 200 + 'px'
+                left: this.props.position.x - 155 + 'px'
                 }}>
                     {this.state.options.map((option, i) => {
                         return <li key={option.name} onClick={ e => this.optionClicked(e, option)} >{option.name}</li>

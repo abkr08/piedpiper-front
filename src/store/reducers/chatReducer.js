@@ -49,6 +49,10 @@ const chatReducer = (state = initialState, action) => {
             return {
                 ...state, contacts: action.contacts
             }
+        case actionTypes.SUBSCRIPTIONSUCCESSFUL:
+            return {
+                ...state, contacts: action.rooms
+            }
         default: 
             return state;
     }

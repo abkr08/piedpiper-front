@@ -3,11 +3,11 @@ import { ChatManager, TokenProvider } from '@pusher/chatkit-client';
 import axios from '../../../Axios';
 
 let currentUser;
-let user;
+
 export const chatInit = () => { 
     return (dispatch, getState) => {
         const {userId} = getState().auth;
-        user = userId;
+        // user = userId;
         const chatManager = new ChatManager({
             instanceLocator: 'v1:us1:64b7dbdb-3e59-4fad-9823-83add90cba65',
             userId: userId,
@@ -19,7 +19,6 @@ export const chatInit = () => {
         .connect({
             onAddedToRoom: room => {
                 getRooms();
-                // this.setState({showSideDrawer: false, room: room});
                 getMessages(room);
             }
         })
@@ -28,7 +27,6 @@ export const chatInit = () => {
             dispatch(subscribeToRooms(currentUser))
             dispatch(chatInitSuccess(currentUser));
             dispatch(getRooms());
-            // console.log(currentUser.rooms[0].users);
         })
         .catch(err => console.log(err));
     }
@@ -60,9 +58,18 @@ const onNewMessage = (message, belongsToCurrentRoom) => {
         belongsToCurrentRoom
     }
 }
+
+const subscriptionSuccessful = rooms => {
+    return {
+        type: actionTypes.SUBSCRIPTIONSUCCESSFUL,
+        rooms
+    }
+}
 const subscribeToRooms = user => {
     return (dispatch, getState) => {
         const contacts = user.rooms;
+        // dispatch(subscriptionSuccessful(contacts))
+        dispatch(getRooms());
         contacts.map(con => {
             return  user.subscribeToRoom({
                  roomId: con.id,
@@ -154,7 +161,6 @@ const startNewChatFailed = err => {
 export const startNewChat = data => {
     return dispatch => {
         let token = localStorage.getItem('token');
-        console.log(data)
         axios.get(`/search/${data.chatParticipant}`, {headers: {'x-auth-token': token}})
             .then(res => {
                 currentUser.createRoom({
@@ -166,7 +172,7 @@ export const startNewChat = data => {
                 .then(res => {
                     console.log(res);
                     dispatch(startNewChatSuccess());
-                    dispatch(subscribeToRooms());
+                    dispatch(subscribeToRooms(currentUser));
                 })
                 .catch(err => {
                     console.log(err);

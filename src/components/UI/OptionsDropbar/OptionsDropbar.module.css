@@ -1,7 +1,7 @@
 .OptionsDropbar {
     position: fixed;
     background-color: #FFFFFF;
-    width: 200px;
+    width: 155px;
     overflow: auto;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     border-radius: 5px;
@@ -10,12 +10,13 @@
     padding: 10px 0;
     box-sizing: border-box;
     font-size: 16px;
+    font-weight: 600;
     transition: .6s all;
 }
 .OptionsDropbar li {
-    color: black;
+    color: #4e4e4e;
     padding: 12px 16px;
-    font-size: 1.1em;
+    font-size: 0.9em;
     display: block;
     text-align: left !important;
     cursor: pointer;

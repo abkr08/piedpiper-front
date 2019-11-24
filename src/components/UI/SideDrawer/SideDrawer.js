@@ -1,11 +1,11 @@
 import React, {Component} from 'react'; 
 import classes from './SideDrawer.module.css';
-import axios from '../../../Axios';
 import { connect } from 'react-redux';
 import JoinableRooms from './JoinableRooms/JoinableRooms';  
 import * as actionCreators from '../../../store/actions/actionIndex';
 import Input from '../Input/Input';
-import Button from '../Button/Button'
+import Button from '../Button/Button';
+import TabBar from '../TabBar/TabBar';
 
 
 class SideDrawer extends Component {
@@ -38,12 +38,7 @@ class SideDrawer extends Component {
         
     }
     onChange = (event) => {
-        // let valid = false; 
-        // if (this.state[name] !== ""){
-        //     valid = true;
-        // }
         this.setState({[event.target.name]: event.target.value});
-        
     }
     onCreateNewGroup = event => {
         event.preventDefault();
@@ -95,47 +90,11 @@ class SideDrawer extends Component {
             attachedClasses = [classes.SideDrawer, classes.Open];
         }
        return  (
-        <div className={attachedClasses.join(' ')}>
-            <div className={classes.divs} onClick={this.createNewGroupHandler}>Create a new group</div>
-            <form onSubmit={this.onCreateNewGroup} style={{display: this.state.showCreateForm ? 'block' : 'none'}}>
-                <Input 
-                elementType='input'
-                elementConfig={{placeholder: 'Enter group name', type: 'text'}}
-                value={this.state.groupName}
-                invalid={this.state.isTouched && !this.state.isValid}
-                shouldValidate={true}
-                touched={this.state.isTouched}
-                name='groupName'
-                changed={ event => this.onChange(event, 'groupName')}
-            />
-                <h3>Add participants</h3>
-                {this.state.potentialParticipants.map((pp, i) => {
-                    return (
-                        <span key={i} className={classes.PP}>
-                            <input onChange={this.onPPChange} type="checkbox" name={pp.name} checked={this.state.newGroupChatParticipants[pp.name]}/>
-                            <label htmlFor={pp.name}>{pp.name}</label>
-                        </span>
-                    )
-                })}
-                
-                <Button /*disabled={!this.state.groupName  && 
-                !Object.keys(this.state.newGroupChatParticipants).map(key => {
-                    return this.state.newGroupChatParticipants[key]
-                }).includes(true)}*/ btnType='Success'>Create</Button>
-            </form>
-            <div className={classes.divs} onClick={this.joinGroup}>Join a group</div>
-            <span style={{display: this.state.ShowJoinableRoomsList ? 'block' : 'none'}} className={classes.RoomsList}>
-                <JoinableRooms joinableRooms={this.state.joinableRooms} />  
-            </span>
-            <div className={classes.divs} onClick={this.startNewChatHandler}>Start a new chat</div>
-            <form onSubmit={this.onStartNewChat} style={{display: this.state.showNewChatForm ? 'block' : 'none'}}>
-                <input onChange={this.onChange} type='text' name='privateChatParticipant' placeholder='Who do you wanna chat with?' />    
-                <button>Submit</button>
-            </form>
-        </div>
-        );
-    
-}
+            <div className={attachedClasses.join(' ')}>
+                <TabBar goBack={this.props.hideSideDrawer} tabName={this.props.actionType} />
+            </div>
+        )
+    }
 }
 const mapStateToProps = state => {
     return {

@@ -1,6 +1,8 @@
 import React, { Component} from 'react';
 import swal from 'sweetalert2';
 
+import TabBar from '../UI/TabBar/TabBar';
+
 import classes from './Profile.module.css';
 import placeholderImage from '../../assets/images/p37605.png';
 
@@ -19,16 +21,14 @@ class Profile extends Component {
     }
 
     render(){
+        const { hideProfile } = this.props;
         let attachedClasses = [classes.Profile, classes.Close];
         if (this.props.show){
             attachedClasses = [classes.Profile, classes.Open];
         }
         return (
             <div className={attachedClasses.join(' ')}>
-                <div className={classes.ProfileTabBar}>
-                    <i className='fa fa-arrow-left ' onClick={this.props.hideProfile}/>
-                    <span>Profile</span>
-                </div>
+                <TabBar goBack={hideProfile} tabName='Profile' />
                 <div className={classes.ProfileImageContainer}>
                     <div className={classes.ProfileImage}>
                         <img src={placeholderImage} alt='' />
