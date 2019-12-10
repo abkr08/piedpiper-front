@@ -12,7 +12,7 @@ import Call from './containers/Call/Call';
 import "./App.css";
 import Modal from "./containers/Modal/Modal.js";
 
-import ringtone from './assets/audio/iphone_trap_remix.mp3';
+import ringtone from './assets/audio/simple_ring.mp3';
 
 
 class App extends Component {

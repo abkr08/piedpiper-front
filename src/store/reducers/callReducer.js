@@ -17,9 +17,8 @@ const callReducer = (state = initialState, action) => {
     
     switch(action.type){
         case actionTypes.PREPARE_CALLER: 
-            
             return {
-                ...state,
+                ...initialState,
                 channel: action.channel 
             }
         case actionTypes.CALL_INIT: 

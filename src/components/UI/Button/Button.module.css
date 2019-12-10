@@ -12,19 +12,3 @@
     font-weight: bold;
     transition: all .3s;
 }
-
-
-.Success {
-    /* background-color: #5C9210; */
-    background-color: #1ECD97;
-}
-
-.Danger {
-    background-color: #b10707;
-}
-.Button:disabled {
-    /* background-color: #eee; */
-    /* color: gray; */
-    cursor: not-allowed;
-    /* background: transparent; */
-}

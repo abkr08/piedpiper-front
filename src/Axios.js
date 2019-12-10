@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const BASE_URL_DEV = 'http://localhost:8080';
+const BASE_URL_PROD = 'https://piedpiperchat.herokuapp.com/';
+
 const instance = axios.create({
-    baseURL: 'https://piedpiperchat.herokuapp.com/' //'http://localhost:8080' //'https://piedpiperchat.herokuapp.com/'
+    baseURL: BASE_URL_DEV
 });
 
 

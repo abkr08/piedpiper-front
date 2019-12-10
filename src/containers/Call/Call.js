@@ -52,6 +52,7 @@ class Call extends Component {
         if (callType === 'video'){
             this.localVideoRef.srcObject = remoteStream ? localStream : null;
             this.remoteVideoRef.srcObject = remoteStream ? remoteStream : localStream;
+            console.log(remoteStream)
         } else {
             this.localAudioRef.srcObject = localStream;
             this.remoteAudioRef.srcObject = remoteStream;

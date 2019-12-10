@@ -8,8 +8,8 @@ const userId = localStorage.getItem('userId');
 const config = {};
 
 //connecting to our signaling server
-// const conn = io('http://localhost:8082')
-const conn = io('https://piedpiperchat.herokuapp.com:8082')
+const conn = io('http://localhost:8082')
+// const conn = io('https://piedpiperchat.herokuapp.com:8082')
 const configuration = { 
     "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }]
 };
@@ -159,7 +159,7 @@ export const callUser = (user, type) => {
             }); 
         } 
         }
-        getMedia().then(gotStream)
+        getMedia().then(stream => gotStream(stream, true))
         .catch(e => {
             dispatch(onError(e));
             console.log(`getUserMedia() error: ${e}`)
@@ -174,13 +174,15 @@ export const callUser = (user, type) => {
       }
   }
 
-const gotStream = myStream => {
+const gotStream = (myStream, isInit) => {
     store.dispatch({type: actionTypes.CALL_INIT})
-    send({
-        type: 'requestToCall',
-        from: userId,
-        to: connectedUser
-    }) 
+    if (isInit){
+        send({
+            type: 'requestToCall',
+            from: userId,
+            to: connectedUser
+        })
+    }
     stream = myStream;
     store.dispatch(onLocalStream(myStream));
     myStream.getTracks().forEach(track => {
@@ -264,7 +266,8 @@ function handleLeave() {
     connectedUser = null; 
     stream.getTracks().forEach(track => track.stop());
     store.dispatch(callEnded()); 
-    yourConn.close(); 
+    store.dispatch(prepareCaller())
+    // yourConn.close();
     yourConn.onicecandidate = null; 
     yourConn.onaddTrack = null;
  };
