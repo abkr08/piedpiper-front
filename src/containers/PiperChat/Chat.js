@@ -1,22 +1,29 @@
 import React from 'react';
+
+import { formatTime } from '../../shared/utility';
+
 import classes from './Chat.module.css';
 
 
-const chat = props => {
+const chat = ({ byCurrentUser, isPrivate, sender, text, time}) => {
     let attachedClasses = [classes.Chat];
-    if (props.byCurrentUser){
-        attachedClasses = [classes.ByCurrentUser];
+    if (byCurrentUser){
+        attachedClasses.push(classes.ByCurrentUser);
     }
     return (
-        // <div className={classes.Wrapper} style={{position: 'relative'}}>
-            <div className={attachedClasses.join('')}>
+            <div className={attachedClasses.join(' ')}>
                 <li>
-                    <span className={classes.Sender}>{props.sender}</span>
-                    <br />
-                    <span className={classes.Text}>{props.text}</span>
+                    { !isPrivate && (
+                        <>
+                            <span className={classes.Sender}>{sender}</span>
+                            <br />
+                        </>
+                    )}
+                    <div className={classes.Text}>{text}</div>
+                    {/* <br /> */}
+                    <div className={classes.Time}>{formatTime(time)}</div>
                 </li>        
             </div>
-        // </div>
     )
 }
 

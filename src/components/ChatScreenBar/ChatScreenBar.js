@@ -5,6 +5,7 @@ import Modal from '../../containers/Modal/Modal';
 import Call from '../../containers/Call/Call';
 import OptionsDropbar from '../UI/OptionsDropbar/OptionsDropbar';
 import { getSVG } from '../../shared/utility';
+import * as constants from '../../shared/constants';
 
 class ChatScreenBar extends Component {
     state = {
@@ -37,17 +38,26 @@ class ChatScreenBar extends Component {
         this.setState({showModal: false})
     }
     render() {
+        const { room, user } = this.props;
+        let isPrivate = room.roomType == constants.PRIVATE;
+        let otherUser;
+        if(isPrivate){
+            otherUser = room.members.filter(mem => mem.username !== user.username)[0];
+        }
         let optionsDropbar = null;
         if (this.state.showOptions){
            optionsDropbar = (
                 <OptionsDropbar hideOptions={this.hideOptions} 
                 position={this.state.position} 
-                show={this.state.showOptions} 
-                options={[{name: 'Contact info'},
-                {name: 'Select messages'},
-                {name: 'Mute'},
-                {name: 'Clear messages'},
-                {name: 'Delete chat'}
+                show={this.state.showOptions}
+                topOffset ={-10}
+                leftOffset ={-155}
+                options={[
+                    {name: 'Contact info', clickHandler: null},
+                    {name: 'Select messages', clickHandler: null},
+                    {name: 'Mute', clickHandler: null},
+                    {name: 'Clear messages', clickHandler: null},
+                    {name: 'Delete chat', clickHandler: null}
                 ]}
                 />
            )
@@ -56,10 +66,10 @@ class ChatScreenBar extends Component {
         return (
             <div className={classes.ChatScreenBar}>
                 <div className={classes.FloatedRight}>
-                   <img src={this.props.room.customData.displayImage} alt=''/>
+                   <img src={isPrivate ? otherUser.profile.displayImage : room.displayImage} alt=''/>
                    <span className={classes.RoomDetails}>
-                    <span className={classes.RoomName}>{this.props.room.name}</span>
-                    { !this.props.room.isPrivate &&
+                    <span className={classes.RoomName}>{isPrivate ? otherUser.username : room.name}</span>
+                    { !isPrivate &&
                         (<span className={classes.RoomMembers}>
                             Ahmed, Aunty Hauwa, Aunty Lami, Hajju
                         </span>)
@@ -67,7 +77,7 @@ class ChatScreenBar extends Component {
                    </span>
                </div>
                <div className={classes.FA}>
-                    {  this.props.room.isPrivate &&  
+                    {  isPrivate &&  
                     <>
                         <span onClick={this.onVideoCallInit}>
                         {getSVG('video', '#263238', '28', '24')}
@@ -84,7 +94,7 @@ class ChatScreenBar extends Component {
                 </div>
                 <Modal show={this.state.showModal}>
                     {this.state.callType ? 
-                        <Call callTo={this.props.room.name} closeModal={this.endCall} callType={this.state.callType}/> : 
+                        <Call callTo={otherUser.username} closeModal={this.endCall} callType={this.state.callType}/> : 
                         null
                     }
                 </Modal>
@@ -95,7 +105,8 @@ class ChatScreenBar extends Component {
 const mapStateToProps = state => {
     return {
         callEnded: state.call.callEnded,
-        callStarted: state.call.callOngoing
+        callStarted: state.call.callOngoing,
+        user: state.auth.user
     }
 }
  export default connect(mapStateToProps)(ChatScreenBar);

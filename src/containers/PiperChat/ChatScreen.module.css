@@ -6,6 +6,9 @@
     box-sizing: border-box;
     overflow-y: hidden;
 }
+svg { 
+    cursor: pointer;
+}
 .ContactsPane {
     height: 100vh;
     background-color: white;
@@ -48,7 +51,7 @@
     position: absolute;
     top: 0;
     height: 100%;
-    width: 100%;
+    width: inherit;
     opacity: .06;
 }
 .Chat {
@@ -56,6 +59,7 @@
     background-color: #E5DDD5;
     width: 65%;
     overflow-y: scroll;
+    text-align: center;
 }
 
 .Msgs {
@@ -74,9 +78,17 @@
 .Chat form input {
     width: 100%;
     padding: 10px;
-    font-size: 20px;
-    font-weight: 500;
+    font-size: 14px;
     bottom: 0;
     left: 0;
     outline: none;
+}
+.CustomMessage {
+    padding: 10px;
+    text-align: center;
+    background-color: rgba(225,245,254,.92);
+    opacity: 0.9;
+    border-radius: 4px;
+    position: relative;
+    bottom: 60px;
 }

@@ -1,21 +1,22 @@
 import * as actionTypes from '../actions';
+import * as constants from "../../../shared/constants";
 import axios from '../../../Axios';
 
-const logInSuccess = (token, userId) => {
+const logInSuccess = (token, user) => {
     return {
         type: actionTypes.LOG_IN,
-        token: token, 
-        userId: userId
+        token, 
+        user
     }
 }
 const checkTokenValidity = expiresIn => {
     return dispatch => {
         setTimeout(() => {
         localStorage.removeItem("token");
-        localStorage.removeItem("userId");
+        localStorage.removeItem("user");
         localStorage.removeItem("expiresIn");
             dispatch(logout());
-        }, expiresIn * 1000);
+        }, expiresIn);
     }
 }
 
@@ -27,17 +28,18 @@ const onAuthInit = () => {
 export const onLogIn = (data) => {
     return dispatch => {
         dispatch(onAuthInit())
-        axios.post("/login", data)
+        axios.post(constants.LOGIN_URL, data)
          .then(res => {
-           const { userId, token, expiresIn } = res.data;
-           const expirationDate = new Date (new Date().getTime() + expiresIn * 1000);
+           const { user, token, expiresIn } = res.data;
+           const expirationDate = new Date (new Date().getTime() + expiresIn);
            localStorage.setItem("token", token);
-           localStorage.setItem("userId", userId);
+           localStorage.setItem("user", JSON.stringify(user));
            localStorage.setItem("expiresIn", expirationDate);
-           dispatch(logInSuccess(res.data.token, userId));
+           dispatch(logInSuccess(res.data.token, user));
            dispatch(checkTokenValidity(expiresIn));
          })
          .catch(err => {
+                console.log(err);
              dispatch(logInFailed(err))
          })
     }
@@ -55,35 +57,37 @@ const logout = () => {
 }
 
 export const onLogout = () => {
-    return dispatch => {
+    return (dispatch, getState) => {
         //delete token saved in local storage
+        let { stompClient } = getState().chat;
+        stompClient.disconnect();
         localStorage.removeItem("token");
-        localStorage.removeItem("userId");
+        localStorage.removeItem("user");
         localStorage.removeItem("expiresIn");
         dispatch(logout());
     }
 }
 
-const authSuccess = (token, userId) => {
+const authSuccess = (token, user) => {
     return {
         type: actionTypes.ON_AUTH,
-        token: token,
-        userId: userId
+        token,
+        user
     }
 }
 export const checkAuthState = () => {
     return dispatch => {
         let token = localStorage.getItem('token');
-        if (!token) {
+        if (token == 'undefined') {
             dispatch(logout());
         } else {
             const expirationDate = new Date (localStorage.getItem('expiresIn'));
             if (expirationDate <= new Date()){
                 dispatch(logout)
             } else {
-                const userId = localStorage.getItem('userId');
-                dispatch(authSuccess(token, userId));
-                dispatch(checkTokenValidity((expirationDate.getTime() - new Date().getTime()) / 1000 ));
+                const user = JSON.parse(localStorage.getItem('user'));
+                dispatch(authSuccess(token, user));
+                dispatch(checkTokenValidity((expirationDate.getTime() - new Date().getTime())));
             
             }
         }
@@ -103,15 +107,40 @@ const registrationFailed = err => {
 export const onRegister = data => {
     return dispatch => {
         dispatch(onAuthInit())
-        axios.post("/register", data)
+        axios.post(constants.REGISTRATION_URL, data)
             .then(res => {
-                const { userId, token, expiresIn } = res.data;
-                dispatch(registered(res))
-                dispatch(authSuccess(token, userId))
-                dispatch(checkTokenValidity(expiresIn));
+                dispatch(registered());
             })
             .catch(err => {
                 dispatch(registrationFailed(err))
             });
+    }
+}
+
+const updatingProfile = () => ({
+    type: actionTypes.UPDATING_PROFILE
+})
+
+const profileUpdated = user => ({
+    type: actionTypes.PROFILE_UPDATE_SUCCESS,
+    user
+})
+
+const profileUpdateFailed = error => ({
+    type: actionTypes.PROFILE_UPDATE_FAILED,
+    error
+})
+export const updateProfile = data => {
+    return dispatch => {
+        dispatch(updatingProfile())
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user'));
+        axios.post(constants.UPDATE_PROFILE_URL(user.username), data, {headers: {'authorization': 'Bearer ' + token}})
+            .then(res => {
+                let newProfile = res.data;
+                user.profile = newProfile;
+                localStorage.setItem('user', JSON.stringify(user));
+                dispatch(profileUpdated(user))
+            }).catch(err => dispatch(profileUpdateFailed(err)))
     }
 }

@@ -17,9 +17,8 @@ const callReducer = (state = initialState, action) => {
     
     switch(action.type){
         case actionTypes.PREPARE_CALLER: 
-            
             return {
-                ...state,
+                ...initialState,
                 channel: action.channel 
             }
         case actionTypes.CALL_INIT: 
@@ -54,8 +53,17 @@ const callReducer = (state = initialState, action) => {
             return {
                 ...state, error: action.error
             }
+        case actionTypes.RESET_FIELDS:
+            let newState = {};
+            let { fields } = action;
+            fields.forEach(field => {
+                if(state.hasOwnProperty(field)){
+                    newState[field] = null;
+                }
+            })
+            return { ...state, ...newState }
         default: 
-        return state;
+            return state;
     }
 }
 

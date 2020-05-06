@@ -21,16 +21,16 @@ const chatReducer = (state = initialState, action) => {
     switch (action.type){
         case actionTypes.CHAT_INIT_SUCCESS:
             return {
-                ...state, currentUser: action.currentUser
+                ...state, currentUser: action.currentUser, stompClient: action.stompClient
             }
         case actionTypes.FETCH_MESSAGES_SUCCESS: {
             return {
                 ...state, messages: action.messages, currentRoom: action.room,
-                unopenedMessages: removeItem(state.unopenedMessages, action.room.id)
+                unopenedMessages: removeItem(state.unopenedMessages, action.roomId)
             }
         }
         case actionTypes.ON_NEW_MESSAGE: 
-            if (action.belongsToCurrentRoom){
+            if (action.belongsToCurrentRoom || action.message.sender == state.currentUser.username){
                 return {
                     ...state, messages: [...state.messages, action.message]
                 }
@@ -45,7 +45,7 @@ const chatReducer = (state = initialState, action) => {
                     ...state, unopenedMessages: unopenedMessagesCopy
                }  
             }
-        case 'ON_ROOMS_FETCHED':
+        case actionTypes.ON_ROOMS_FETCHED:
             return {
                 ...state, contacts: action.contacts
             }
@@ -53,6 +53,15 @@ const chatReducer = (state = initialState, action) => {
             return {
                 ...state, contacts: action.rooms
             }
+        case actionTypes.RESET_FIELDS:
+            let newState = {};
+            let { fields } = action;
+            fields.forEach(field => {
+                if(state.hasOwnProperty(field)){
+                    newState[field] = null;
+                }
+            })
+            return { ...state, ...newState }
         default: 
             return state;
     }

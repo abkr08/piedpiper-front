@@ -2,9 +2,11 @@ import * as actionTypes from '../actions/actions';
 
 const initialState = {
     token: null,
+    user: null,
     userId: null,
     registrationSuccess: false,
-    error: null
+    authError: null,
+    updatingProfileImage: false
 }
 
 const authReducer = (state = initialState, action) => {
@@ -15,7 +17,7 @@ const authReducer = (state = initialState, action) => {
             }
         case actionTypes.LOG_IN:
            return {
-               ...state, token: action.token, userId: action.userId, error: null
+               ...state, token: action.token, user: action.user, userId: action.user.userId, error: null
            }
         case actionTypes.LOG_OUT:
             return {
@@ -23,7 +25,7 @@ const authReducer = (state = initialState, action) => {
             }
         case actionTypes.ON_AUTH:
             return {
-                ...state, token: action.token, userId: action.userId
+                ...state, token: action.token, userId: action.user.userId, user: action.user
             }
         case actionTypes.ON_REGISTER: 
             return {
@@ -31,12 +33,27 @@ const authReducer = (state = initialState, action) => {
             }
         case actionTypes.LOG_IN_FAILED:
             return {
-                ...state, error: action.error
+                ...state, authError: action.error
             }
         case actionTypes.ON_REGISTRATION_FAILED:
             return {
-                ...state, error: action.error
+                ...state, authError: action.error
             }
+        case actionTypes.PROFILE_UPDATE_SUCCESS:
+            return {
+                ...state, user: action.user, updatingProfileImage: false
+            }
+        case actionTypes.RESET_FIELDS:
+            let newState = {};
+            let { fields } = action;
+            fields.forEach(field => {
+                if(state.hasOwnProperty(field)){
+                    newState[field] = null;
+                }
+            })
+            return {...state, ...newState }
+        case actionTypes.UPDATING_PROFILE:
+            return { ...state, updatingProfileImage: true }
         default: 
             return state;
     }

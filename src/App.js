@@ -12,7 +12,7 @@ import Call from './containers/Call/Call';
 import "./App.css";
 import Modal from "./containers/Modal/Modal.js";
 
-import ringtone from './assets/audio/iphone_trap_remix.mp3';
+import ringtone from './assets/audio/simple_ring.mp3';
 
 
 class App extends Component {
@@ -28,9 +28,14 @@ class App extends Component {
   }
   
   componentDidUpdate () {
-    if (this.props.isLoggedIn){
-      if (!this.props.channel){
-        this.props.getCallerReady();
+    let { isLoggedIn, channel, callEnded } = this.props;
+    if (isLoggedIn){
+      if (!channel){
+        // this.props.getCallerReady();
+      }
+      if(callEnded){
+        this.ringtoneRef.pause();
+        this.ringtoneRef.currentTime = 0;
       }
     }
   }
@@ -41,23 +46,15 @@ class App extends Component {
   }
 
   rejectCall = () => {
+    const { caller, callRejected } = this.props;
     this.ringtoneRef.pause();
     this.ringtoneRef.currentTime = 0;
-    this.props.callRejected();
+    callRejected(caller);
   }
   render() {
     let chatScreen = null;
       if (this.props.isLoggedIn){
-        if (this.props.incomingCall){
-          this.ringtoneRef.play();
-          chatScreen = (
-            <IncomingCall acceptCall={this.acceptCall}
-              rejectCall={this.rejectCall}
-              caller={this.props.caller}
-              callType={this.props.callType}
-            />
-          );
-      } else if (this.props.callOngoing){
+        if (this.props.callOngoing){
         chatScreen = (
           <React.Fragment>
             <Modal show><Call role='callee' callType={this.props.callType}/></Modal>
@@ -65,7 +62,21 @@ class App extends Component {
           </React.Fragment>
           );
       } else {
+        if (this.props.incomingCall){
+          this.ringtoneRef.play();
+          chatScreen = (
+            <>
+              <IncomingCall acceptCall={this.acceptCall}
+                rejectCall={this.rejectCall}
+                caller={this.props.caller || 'Gotzil'}
+                callType={this.props.callType || 'video'}
+              />
+              <ChatScreen />
+            </>
+          );
+      } else {
         chatScreen = <ChatScreen />
+      }
       }
     } 
     return (
@@ -92,7 +103,8 @@ const mapStateToProps = state => {
     callType: state.call.callType,
     channel: state.call.channel,
     caller: state.call.caller,
-    callOngoing: state.call.callOngoing
+    callOngoing: state.call.callOngoing,
+    callEnded: state.call.callEnded
   }
 }
 const mapDispatchToProps = dispatch => {
@@ -100,7 +112,7 @@ const mapDispatchToProps = dispatch => {
     onAuth: () => dispatch(actionCreators.checkAuthState()),
     getCallerReady: () => dispatch(actionCreators.getCallerReady()),
     callAccepted: () => dispatch(actionCreators.callAccepted()),
-    callRejected: () => dispatch(actionCreators.callRejected())
+    callRejected: caller => dispatch(actionCreators.callRejected(caller))
   }
 }
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));

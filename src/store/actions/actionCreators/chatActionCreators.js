@@ -1,12 +1,69 @@
 import * as actionTypes from '../actions';
+import { getCallerReady } from '../actionIndex';
+import Stomp from 'stompjs';
+import SockJS from 'sockjs-client';
 import { ChatManager, TokenProvider } from '@pusher/chatkit-client';
 import axios from '../../../Axios';
+import * as constants from '../../../shared/constants';
 
-let currentUser;
+let currentUser = null;
+let stompClient = null;
+let ws = null;
+export const initializeWebSocketConnection = () => {
+    currentUser = JSON.parse(localStorage.getItem("user"));
+    return (dispatch, getState) => {
+        connectAndReconnect(() => openSocket(dispatch, getState));
+}
+}
+const connectAndReconnect = (successCallback) => {
+    ws = new SockJS(constants.WS_SERVER_URL);
+    stompClient = Stomp.over(ws);
+    // stompClient.debug = null;
+    stompClient.connect({}, (frame) => {
+        if(stompClient.connected){
+            successCallback();
+        }
+    }, () => {
+      setTimeout(() => {
+        connectAndReconnect(successCallback);
+      }, 5000);
+    });
+  }
+
+const openSocket = (dispatch, getState) => {
+    const { rooms } = currentUser; 
+    rooms.forEach(room => {
+        stompClient.subscribe("/socket-publisher/" + room.roomId, message => {
+            handleResult(dispatch, getState, message);
+          });
+    });
+    dispatch(chatInitSuccess(currentUser, stompClient));
+    dispatch(getCallerReady(stompClient))   
+}
+
+const handleResult = (dispatch, getState, message) => {
+    let messageResult = JSON.parse(message.body);
+    let belongsToCurrentRoom = false;
+    const { currentRoom } = getState().chat;
+    if (currentRoom && currentRoom.id === messageResult.roomId){
+        belongsToCurrentRoom = true;
+    }
+    dispatch(getRooms());
+    dispatch(onNewMessage(messageResult, belongsToCurrentRoom));
+      
+
+}
+
+export const sendMessageUsingSocket = message => {
+    return dispatch => {
+        console.log(message);
+         stompClient.send("/socket-subscriber/send/message", {}, JSON.stringify(message));
+    }
+  }
 
 export const chatInit = () => { 
     return (dispatch, getState) => {
-        const {userId} = getState().auth;
+        const { userId } = getState().auth;
         // user = userId;
         const chatManager = new ChatManager({
             instanceLocator: 'v1:us1:64b7dbdb-3e59-4fad-9823-83add90cba65',
@@ -18,9 +75,19 @@ export const chatInit = () => {
         chatManager
         .connect({
             onAddedToRoom: room => {
-                getRooms();
-                getMessages(room);
-            }
+                // getRooms();
+                // getMessages(room);
+                dispatch(subscribeToRooms(currentUser))
+            },
+            // onUserLeftRoom: (room, user) => {
+            //     if (userId !== user.id && room.isPrivate){
+            //         let customMessage = `${user.id} has exited the room. You're all alone.`;
+            //         currentUser.updateRoom({
+            //             roomId: room.id,
+            //             customData: { 'customMessage':  customMessage},
+            //           })
+            //     }
+            // }
         })
         .then(user => {
             currentUser = user;
@@ -31,6 +98,7 @@ export const chatInit = () => {
         .catch(err => console.log(err));
     }
 }
+
 const getRooms = () => {
     return dispatch => {
         const contacts = currentUser.rooms.map(room => {
@@ -41,14 +109,23 @@ const getRooms = () => {
             !name.length ? obj.name = currentUser.id : obj.name = name;
             obj.id = room.id;
             return {...room, ...obj};
-        });
-        dispatch({type: 'ON_ROOMS_FETCHED', contacts})
+        })
+        let sortedContacts = sortContactsByDate(contacts);
+        dispatch({type: 'ON_ROOMS_FETCHED', contacts: sortedContacts })
     }
 }
-const chatInitSuccess = currentUser => {
+
+const sortContactsByDate = contacts => {
+    return contacts.sort((a, b) => { 
+        return new Date(b.lastMessageAt) - new Date(a.lastMessageAt);
+    });
+}
+
+const chatInitSuccess = (currentUser, stompClient) => {
     return {
         type: actionTypes.CHAT_INIT_SUCCESS,
-        currentUser
+        currentUser,
+        stompClient
     }
 }
 const onNewMessage = (message, belongsToCurrentRoom) => {
@@ -67,7 +144,7 @@ const subscriptionSuccessful = rooms => {
 }
 const subscribeToRooms = user => {
     return (dispatch, getState) => {
-        const contacts = user.rooms;
+        const contacts = sortContactsByDate(user.rooms);
         // dispatch(subscriptionSuccessful(contacts))
         dispatch(getRooms());
         contacts.map(con => {
@@ -79,7 +156,8 @@ const subscribeToRooms = user => {
                      const { currentRoom } = getState().chat;
                     if (currentRoom && currentRoom.id === message.roomId){
                         belongsToCurrentRoom = true;
-                    } 
+                    }
+                    dispatch(getRooms());
                     dispatch(onNewMessage(message, belongsToCurrentRoom));
                    }
                  },
@@ -98,18 +176,15 @@ const fetchMessagesSuccess = (messages, room) => {
 }
 export const getMessages = room => {
     return dispatch => {
-        currentUser.fetchMessages({
-            roomId: room['id'],
-            //initialId: 42,
-            direction: 'older',
-            limit: 100,
-          })
-            .then(messages => {
-              dispatch(fetchMessagesSuccess(messages, room));
-            })
-            .catch(err => {
-              console.log(`Error fetching messages: ${err}`);
-            })
+      
+        let token = localStorage.getItem('token');
+        axios.get(constants.GET_MESSAGES_URL(room.roomId), {headers: {'authorization': 'Bearer ' + token}})
+        .then(res => {
+            dispatch(fetchMessagesSuccess(res.data, room));
+        })
+        .catch(err => {
+            console.log(`Error fetching messages: ${err}`);
+        })
     }
    
 }
@@ -135,7 +210,9 @@ export const createNewGroup = data => {
             name: data.name,
             private: false,
             addUserIds: data.participants,
-            customData: { foo: 42 },
+            customData: { 
+                displayImage: 'https://api.adorable.io/avatars/285/abott@adorable.png'
+             },
           }).then(room => {
             console.log(`Created room called ${room.name}`);
             dispatch(createGroupSuccess());
@@ -158,26 +235,61 @@ const startNewChatFailed = err => {
         err
     }
 }
+
+const checkRoomDuplicity = (initiator, potentialParticipant) => {
+    let roomName = `${initiator.id}and${potentialParticipant}`;
+    let alternateRoomName = `${potentialParticipant}and${initiator.id}`;
+
+    let roomExists = initiator.rooms.findIndex(room => {
+        console.log(roomName, alternateRoomName, room.name)
+        if(room['name'] === roomName || room['name'] === alternateRoomName)
+        {
+          return true;
+        }
+        return false;
+
+    });
+    
+    if (roomExists !== -1){
+        return { isDuplicate: true, roomId: initiator.rooms[roomExists].id}
+    }
+    return { isDuplicate: false }
+}
 export const startNewChat = data => {
     return dispatch => {
         let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user'));
+        let { userId, profileImage }  = user;
         axios.get(`/search/${data.chatParticipant}`, {headers: {'x-auth-token': token}})
             .then(res => {
-                currentUser.createRoom({
-                name: `${currentUser.id}and${data.chatParticipant}`,
-                private: true,
-                addUserIds: [data.chatParticipant],
-                customData: {displayImage: res.data.avatar}     
-            })
-                .then(res => {
-                    console.log(res);
-                    dispatch(startNewChatSuccess());
-                    dispatch(subscribeToRooms(currentUser));
-                })
-                .catch(err => {
-                    console.log(err);
-                    dispatch(startNewChatFailed(err));
-                });
+                let { isDuplicate, roomId } = checkRoomDuplicity(currentUser, data.chatParticipant);
+                if (!isDuplicate){
+                    currentUser.createRoom({
+                        name: `${currentUser.id}and${data.chatParticipant}`,
+                        private: true,
+                        addUserIds: [data.chatParticipant],
+                        customData: {
+                            [userId]:  profileImage,
+                            [data.chatParticipant]: res.data.avatar
+                        }     
+                    })
+                        .then(res => {
+                            console.log(res);
+                            dispatch(startNewChatSuccess());
+                            dispatch(subscribeToRooms(currentUser));
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            dispatch(startNewChatFailed(err));
+                        });
+                } else {
+                    currentUser.joinRoom({
+                        roomId: roomId
+                    }).then(res => {
+                        console.log('Room successfully joined' + res);
+                    }).catch(err => console.error(err));
+                }
+                
             })
             .catch(err => console.log(err));
     }
@@ -202,6 +314,7 @@ export const deleteChat = roomId => {
           console.log(`Deleted room with ID: ${roomId}`);
           //dispatch(subscribeToRooms());
         //   dispatch(chatInitSuccess());
+        dispatch(getRooms())
         })
         .catch(err => {
           console.log(`Error deleted room ${roomId}: ${err}`)
