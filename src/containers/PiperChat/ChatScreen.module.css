@@ -6,6 +6,9 @@
     box-sizing: border-box;
     overflow-y: hidden;
 }
+svg { 
+    cursor: pointer;
+}
 .ContactsPane {
     height: 100vh;
     background-color: white;

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Contact from './Contact';
 import NoContacts from '../../components/NoContacts/NoContacts'
@@ -51,14 +52,13 @@ class ChatScreen extends Component {
             roomId: this.props.currentRoom.roomId,
             sender: this.props.user.username
         }
-        // this.props.sendMessage(data);
         this.props.sendMessageUsingSocket(data)
         this.setState({text: ''});
     }
 
    toggleProfile = () => {
         this.setState(prevState => {
-            return {showProfile: !prevState.showProfile}});
+            return {showProfile: !prevState.showProfile, showOptions: false}});
     }
 
     componentDidUpdate () {
@@ -77,7 +77,7 @@ class ChatScreen extends Component {
     }
 
     render () {
-        const { currentRoom, endCall, user, messages, unopenedMessages } = this.props;
+        const { currentRoom, endCall, user, messages, unopenedMessages, history } = this.props;
 
         let chat = <Modal show={true}>
                         <Spinner />
@@ -127,12 +127,14 @@ class ChatScreen extends Component {
                 <OptionsDropbar hideOptions={this.hideOptions} 
                 position={this.state.position} 
                 show={this.state.showOptions}
+                topOffset={0}
+                leftOffset={0}
                 showProfile={this.toggleProfile}
                 options={
                     [
-                        {name: 'New group'},
-                        {name: 'Profile'},
-                        {name: 'Log out'},
+                        {name: 'New group', clickHandler: null },
+                        {name: 'Profile', clickHandler: this.toggleProfile},
+                        {name: 'Log out', clickHandler: () => history.push('/logout')},
                     ]
                 }
                 />
@@ -217,4 +219,4 @@ const mapDispatchToProps = dispatch => {
         sendMessage: data => dispatch(actionCreators.sendMessage(data))
     }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(ChatScreen);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ChatScreen));

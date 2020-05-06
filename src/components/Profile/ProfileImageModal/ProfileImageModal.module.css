@@ -1,32 +1,64 @@
-.ProfileImageModal {
-    position: fixed;
-    /* top: 50%;
-    left: 50%; */
-    width: 500px;
+.AvatarContainer {
+    width: 400px;
     height: 400px;
-    background-color: #E6E6E6;
+    position: relative;
 }
-
-.ProfileImageModal header {
+.ProfileImageModal {
+    width: 400px;
+    height: 500px;
+    background-color: #E6E6E6;
+    font-size: 17px;
+    font-weight: 600;
+}
+.Header {
     background-color: #1ECD97;
     color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 4px;
+}
+.Header span {
+    display: inline-flex;
+    justify-content: space-around;
+    align-items: inherit;
+}
+.Header p {
+    margin-left: 6px;
+    font-weight: 600;
 }
 
-.ProfileImageModal img {
-    width: 500px;
-    height: 300px;
-    border-radius: 0;
-    margin: 0;
-    transform: none;
-    animation: none;
+.Reselect {
+    cursor: pointer;
 }
-.ProfileImageModal button {
+
+.ProfileImageModal .SubmitImage {
     position: absolute;
+    height: 60px;
+    width: 60px;
+    right: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    bottom: -30px;
+    z-index: 200;
+    border-radius: 50%;
+    background-color: #1ECD97;
+    color: white; 
+}
+
+.Scale {
+    position: absolute;
+    right: 8px;
+    border-radius: 3px;
+    padding: 1px;
+    top: calc(50% - 18px);
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    z-index: 200;
 }
 .ProfileImageModal footer {
-    height: 100px;
-    background-color: #E6E6E6;
+    height: 90px;
+    background-color: rgba(210, 210, 210, 1);
 }

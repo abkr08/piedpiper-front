@@ -137,7 +137,6 @@ export const updateProfile = data => {
         let user = JSON.parse(localStorage.getItem('user'));
         axios.post(constants.UPDATE_PROFILE_URL(user.username), data, {headers: {'authorization': 'Bearer ' + token}})
             .then(res => {
-                console.log('Success ' + res.data);
                 let newProfile = res.data;
                 user.profile = newProfile;
                 localStorage.setItem('user', JSON.stringify(user));

@@ -5,16 +5,17 @@ import swal from 'sweetalert2';
 import * as actionCreators from '../../store/actions/actionIndex';
 import TabBar from '../UI/TabBar/TabBar';
 import classes from './Profile.module.css';
-import AvatarEditor from './AvatarEditor';
 import ProfileImageModal from './ProfileImageModal/ProfileImageModal';
 import Modal from '../../containers/Modal/Modal';
 import OptionsDropbar from '../UI/OptionsDropbar/OptionsDropbar';
+import Spinner from '../UI/Spinner/Spinner';
 
 
 
 class Profile extends Component {
     state = {
-        image: this.props.user.profile.displayImage, 
+        // image: this.props.user.profile.displayImage,
+        selectedImage: null,
         file: null,
         showModal: false,
         showOptions: false,
@@ -43,16 +44,23 @@ class Profile extends Component {
         this.setState({showOptions: true, position: pos})
     }
 
-    updateProfilePicture = e => {
-        const { updateProfile } = this.props;
+    onImageSelected = e => {
         const src = window.URL.createObjectURL(this.inputRef.files[0])
-        this.setState({ image: src, file: this.inputRef.files[0] }, () => {
-            if (this.state.file !== null){
+        this.setState({ showModal: true, selectedImage: src, file: this.inputRef.files[0] })
+    }
+
+    updateProfilePicture = file => {
+        const { updateProfile } = this.props;
+        this.setState({ showModal: false})
+            if (file !== null){
                 let formData = new FormData();
-                formData.append('displayImage', this.state.file);
+                formData.append('displayImage', file);
                 updateProfile(formData);
             }
-        });
+    }
+
+    cancelImageUpdate = () => {
+        this.setState({ showModal: false })
     }
 
     hideOptions = () => {
@@ -67,7 +75,7 @@ class Profile extends Component {
 
     }
     uploadPhoto = () => {
-
+        this.inputRef.click();
     }
 
     deletePhoto = () => {
@@ -76,9 +84,10 @@ class Profile extends Component {
 
 
     render(){
-        const { hideProfile, user, show } = this.props;
-        const { fullName, username } = user;
-        const { showOptions, showModal, image, position } = this.state;
+        const { hideProfile, user, show, updatingProfileImage } = this.props;
+        let updatingProfileImages = true;
+        const { fullName, username, profile: { displayImage, bio } } = user;
+        const { showOptions, showModal, position, selectedImage } = this.state;
         let attachedClasses = [classes.Profile, classes.Close];
         if (show){
             attachedClasses = [classes.Profile, classes.Open];
@@ -106,19 +115,26 @@ class Profile extends Component {
                 <TabBar goBack={hideProfile} tabName='Profile' />
                 <div className={classes.ProfileImageContainer}>
                     <div className={classes.ProfileImage} onClick={this.showOptions}>
-                        <img src={this.state.image} alt='' />
-                        <Modal show={showModal}>
-                            <ProfileImageModal image={image}/>
-                        </Modal>
-                        
-                        {/* <AvatarEditor image={this.state.image}/> */}
+                        <img src={displayImage} alt='' />
+                        {   updatingProfileImage && (
+                                <span className={classes.Spinner}><Spinner /></span>
+                            )
+                        }
                         <span className={classes.ChangeImage}>
                             <span className={classes.CameraIcon}><i className='fa fa-camera' /></span>
-                            <input type='file' style={{ display: 'none'}} accept="image/*" ref={ input => this.inputRef = input} onChange={this.updateProfilePicture}/>
+                            <input type='file' style={{ display: 'none'}} accept="image/*" ref={ input => this.inputRef = input} onChange={this.onImageSelected}/>
                         <span className={classes.ChangeImageText}>Change Profile Photo</span>
-                    </span>
+                        </span>
                     </div>
                 </div>
+                <Modal show={showModal}>
+                    <ProfileImageModal 
+                        image={selectedImage}
+                        updateDisplayImage={this.updateProfilePicture}
+                        username={username}
+                        cancelImageUpdate={this.cancelImageUpdate}
+                    />
+                </Modal>
                 {options}
                 <div className={classes.Names}>
                     <span className={classes.Name}>{fullName}</span>
@@ -128,7 +144,7 @@ class Profile extends Component {
                 <div className={classes.About}>
                     <h3>Intro</h3>
                     <hr />
-                    <span>Write awesome things About Yourself here.</span>
+                    <span>{bio ? bio : 'Write awesome things About Yourself here.'}</span>
                 </div>
                 <hr />
                 <div className={classes.SocialProfiles}>
@@ -146,7 +162,8 @@ class Profile extends Component {
 }
 
 const mapStateToProps = state => ({
-    user: state.auth.user
+    user: state.auth.user,
+    updatingProfileImage: state.auth.updatingProfileImage
 })
 
 const mapDispatchToProps = dispatch => ({

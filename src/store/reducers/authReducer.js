@@ -5,7 +5,8 @@ const initialState = {
     user: null,
     userId: null,
     registrationSuccess: false,
-    authError: null
+    authError: null,
+    updatingProfileImage: false
 }
 
 const authReducer = (state = initialState, action) => {
@@ -40,7 +41,7 @@ const authReducer = (state = initialState, action) => {
             }
         case actionTypes.PROFILE_UPDATE_SUCCESS:
             return {
-                ...state, user: action.user
+                ...state, user: action.user, updatingProfileImage: false
             }
         case actionTypes.RESET_FIELDS:
             let newState = {};
@@ -51,6 +52,8 @@ const authReducer = (state = initialState, action) => {
                 }
             })
             return {...state, ...newState }
+        case actionTypes.UPDATING_PROFILE:
+            return { ...state, updatingProfileImage: true }
         default: 
             return state;
     }
