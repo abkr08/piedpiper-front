@@ -22,6 +22,7 @@ class OptionsDropbar extends Component {
         document.removeEventListener('click', this.hideOptions);
     }
     optionClicked = (event, option) => {
+        event.stopPropagation();
         switch(option.name){
             case 'Archive chat':
                 alert('Archive chat');
@@ -47,14 +48,15 @@ class OptionsDropbar extends Component {
         }
     }
     render(){
+        const { position, topOffset, leftOffset } = this.props;
         let options = null;
         if (this.props.show){
             options = (
-                <ul ref={ ul => this.optionsRef = ul} className={classes.OptionsDropbar} style={{top: this.props.position.y  + 'px',
-                left: this.props.position.x - 155 + 'px'
+                <ul ref={ ul => this.optionsRef = ul} className={classes.OptionsDropbar} style={{top: position.y  + topOffset + 'px',
+                left: position.x + leftOffset + 'px'
                 }}>
                     {this.state.options.map((option, i) => {
-                        return <li key={option.name} onClick={ e => this.optionClicked(e, option)} >{option.name}</li>
+                        return <li key={option.name} onClick={option.clickHandler} >{option.name}</li>
                     })}
                 </ul>
             )

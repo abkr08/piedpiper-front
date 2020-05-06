@@ -15,38 +15,33 @@ class Call extends Component {
     }
        
     componentDidMount (){
-        if (this.props.role === 'callee'){
-            this.setState({room: this.props.caller});
+        let { role, callUser, callTo, callType, caller } = this.props;
+        if (role === 'callee'){
+            this.setState({ room: caller });
         } else {
-            this.props.callUser(this.props.callTo, this.props.callType);
-            this.setState({room: this.props.callTo});
+            callUser(callTo, callType);
+            this.setState({room: callTo});
         }
-        this.props.channel.on('message', data => {
-            if (JSON.parse(data).type === 'leave'){
-                if (!this.props.role){
-                    this.props.closeModal();
-                }
-            }
-        })
     }
        
     
     endCall = () => {
         this.setState({room: null});
-        this.props.endCall();
-        if (!this.props.role){
-            this.props.closeModal();
+        let { role, endCall, closeModal } = this.props;
+        endCall();
+        if (!role){
+            closeModal();
         }
     }
-    
-   
-    
+        
     
     async componentDidUpdate () {
         const { 
             error, endCall, closeModal, 
             callType, localStream, 
-            remoteStream 
+            remoteStream,
+            callEnded,
+            resetFields
         } = this.props;
         
         if (callType === 'video'){
@@ -67,6 +62,11 @@ class Call extends Component {
                 endCall();
                 closeModal();
             }
+        }
+        if (callEnded){
+            closeModal();
+            let fields = ['callEnded'];
+            resetFields(fields);
         }
     }
        
@@ -90,7 +90,7 @@ class Call extends Component {
                         <div className={classes.CallButtons}>
                             <span  onClick={this.endCall} 
                             className={classes.EndCallBtn}>
-                                {getSVG('endCall', 'white', '50', '50')}
+                                {getSVG('phone', 'white', '50', '50')}
                             </span>
                             <span  onClick={this.endCall} 
                             className={classes.MuteBtn}>
@@ -123,13 +123,15 @@ const mapStateToProps = state => {
         localStream: state.call.localStream,
         incomingCall: state.call.incomingCall,
         caller: state.call.caller,
-        error: state.call.error
+        error: state.call.error,
+        callEnded: state.call.callEnded
     }
 }
 const mapDispatchToProps = dispatch => {
     return {
         callUser: (user, callType) => dispatch(callActionCreators.callUser(user, callType)),
-        endCall: () => dispatch(callActionCreators.endCall())
+        endCall: () => dispatch(callActionCreators.endCall()),
+        resetFields: fields => dispatch(callActionCreators.resetFields(fields))
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Call);

@@ -47,13 +47,16 @@ class Login extends Component {
   }
 
   componentDidUpdate () {
-    const { error } = this.props;
+    const { authError } = this.props;
     const { loading } = this.state;
-    if (error && loading){
+    if (authError && loading){
       this.setState({loading: false})
     }
   }
-
+  componentWillMount(){
+    const fields = ['authError', 'registrationSuccess']
+    this.props.resetFields(fields);
+  }
   onChange = (event, inputIdentifier) => {
     const { value } = event.target;
     const updatedFormElement = updateObject(this.state.controls[inputIdentifier], {
@@ -96,7 +99,7 @@ class Login extends Component {
 
   render() {
     const { loading, controls, formIsValid } = this.state;
-    const { error, isLoggedIn, history } = this.props
+    const { authError, isLoggedIn, history } = this.props
     let redirect = null;
     if (isLoggedIn){
       redirect = <Redirect to="/"/>;
@@ -123,7 +126,7 @@ class Login extends Component {
       <div className={classes.Login}>
       {redirect}
         <h2> Login </h2>
-        { error && <ErrorBox error={error}/> }
+        { authError && <ErrorBox error={authError}/> }
           <form onSubmit={this.onSubmit}>
             {form}
             <span className={classes.AuthOptions}>
@@ -163,13 +166,14 @@ class Login extends Component {
 const mapStateToProps = state => {
   return {
     isLoggedIn: state.auth.token !== null,
-    error: state.auth.error
+    authError: state.auth.authError
   }
 }
 
 const mapDispatchToProps = dispatch => {
   return {
-    onLogIn: (data) => dispatch(actionCreators.onLogIn(data))
+    onLogIn: (data) => dispatch(actionCreators.onLogIn(data)),
+    resetFields: fields => dispatch(actionCreators.resetFields(fields))
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

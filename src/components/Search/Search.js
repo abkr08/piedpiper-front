@@ -20,8 +20,14 @@ class Search extends Component {
     // Submit text
     onSubmit = () => {
         const { searchText } = this.state;
-        let data = { chatParticipant: searchText };
+        let data = { chatParticipant: searchText.toLowerCase() };
+        console.log(data)
         this.props.onStartNewChat(data);
+        this.setState({
+            showSubmitButton: false,
+            showBackBtn: false,
+            searchText: ''
+        })
     }
 
     render(){

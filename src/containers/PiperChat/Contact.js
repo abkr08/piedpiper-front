@@ -1,28 +1,19 @@
 import React, { useState } from 'react';
-import moment from 'moment';
-import classes from './Contact.module.css';
-import img from '../../assets/images/p37605.png'
 import { connect } from 'react-redux';
+
+import { formatDate } from '../../shared/utility'
+import * as constants from '../../shared/constants';
+import * as chatActionCreators from '../../store/actions/actionIndex';
+
+import classes from './Contact.module.css';
 import OptionsDropbar from '../../components/UI/OptionsDropbar/OptionsDropbar';
 
 const contact = props => {
     const [showOptions, toggleShowOptions] = useState(false);
     const [position, updatePosition] = useState({});
-    // console.log(moment("2010-01-01T05:06:07").getDate().toString());
-    const formatDate = date => {
-        moment.updateLocale('en', {
-            calendar : {
-                lastDay : '[Yesterday]',
-                sameDay : 'LT',
-                nextDay : '[Tomorrow at] LT',
-                lastWeek : 'dddd',
-                nextWeek : 'dddd [at] LT',
-                sameElse : 'L'
-            }
-        });
-        return moment(date).calendar()
-    }
-    // console.log(formatDate("2019-11-24T05:06:07"));
+    const { room, Active, unopenedMessages, clicked, user, deleteChat } = props;
+    const { roomType, displayImage, name, createdAt, updatedAt, roomId, lastMessageAt, memebers } = room;
+    
     const showOptionsHandler = event => {
         event.stopPropagation();
         let pos = {};
@@ -31,43 +22,69 @@ const contact = props => {
         toggleShowOptions(true);
         updatePosition(pos)
     }
+
     const hideOptions = () => {
         toggleShowOptions(false);
         updatePosition({})
     }
+
+    const exitRoom = () => {
+        debugger;
+        deleteChat(roomId);
+    }
+
     let attachedClasses = [classes.Contact];
-    let unreadMessages = "";
-    if (props.Active){
+    
+    if (Active){
         attachedClasses.push(classes.Active); 
     }
-    if (props.unopenedMessages[props.id]){
-        unreadMessages = props.unopenedMessages[props.id].length;
-    }
     let contact = null;
-    if (props.room){
+    const isPrivate = roomType === constants.PRIVATE;
+    let otherUser = null;
+    if (room){
+        if(isPrivate){
+            otherUser = room.members.filter(mem => mem.username != user.username)[0];
+        }
         contact = (
-            <div className={attachedClasses.join(' ')} onClick={props.clicked}>
-                <span className={classes.ImageContainter}><img src={img} alt=''/></span>
+            <div className={attachedClasses.join(' ')} onClick={clicked}>
+                <div className={classes.ImageContainter}>
+                    <img src={ isPrivate ?  otherUser.profile.displayImage: displayImage } alt=''/>
+                </div>
                 <div className={classes.ContactDetails}>
                     <div className={classes.FloatedLeft}>
-                        <span>{props.room.name}</span>
-                        <span className={classes.LastMessage}>Honey: Love you too babe.{/*props.lastMessage*/}</span>
+                        <span>{ isPrivate ? otherUser.username : name }</span>
+                        {/* { lastMessage && 
+                            <span className={classes.LastMessage}>
+                                {
+                                    (!isPrivate && user.userId !== lastMessage.senderId) ? 
+                                        `${lastMessage.sender}: ${lastMessage.text}` 
+                                            : lastMessage.text 
+                                }
+                            </span> 
+                        } */}
                     </div>
                     <div className={classes.FloatedRight}>
-                        <span className={classes.LastUpdated}>{formatDate(props.room.updatedAt)}</span>
+                        <span className={classes.LastUpdated}>{updatedAt ? formatDate(updatedAt) : formatDate(createdAt)}</span>
                         <div className={classes.UnreadMessagesContainer}>
-                            <span className={classes.UnreadMessages}>{unreadMessages || 8}</span>
+                            { (unopenedMessages && unopenedMessages.length) && 
+                                <span className={classes.UnreadMessages}>
+                                    {unopenedMessages.length}
+                                </span> 
+                            }
                             <i onClick={showOptionsHandler} className="fa fa-angle-down"></i>
                             { showOptions && 
                                 <OptionsDropbar position={position} 
-                                roomId={props.room.id}
+                                roomId={roomId}
                                 show={showOptions} 
+                                topOffset={0}
+                                leftOffset={-155}
                                 hideOptions={hideOptions}
-                                options={[{name: 'Archive chat'},
-                                {name: 'Mute'},
-                                {name: !props.room.isPrivate ? 'Exit group':'Delete chat'},
-                                {name: 'Pin chat'},
-                                {name: 'Mark as unread'}
+                                options={[
+                                    {name: 'Archive chat', clickHandler: null},
+                                    {name: 'Mute', clickHandler: null},
+                                    {name: !isPrivate ? 'Exit group':'Delete chat', clickHandler: exitRoom},
+                                    {name: 'Pin chat', clickHandler: null},
+                                    {name: 'Mark as unread', clickHandler: null}
                                 ]}
                                 />
                             }
@@ -84,4 +101,8 @@ const mapStateToProps = state => {
          userId: state.auth.userId
     }
 }
-export default connect(mapStateToProps)(contact);
+const mapDispatchToProps = dispatch => ({
+    deleteChat: roomId => dispatch(chatActionCreators.deleteChat(roomId))
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(contact);

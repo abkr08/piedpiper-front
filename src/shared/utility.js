@@ -1,4 +1,6 @@
 import React from 'react';
+import moment from 'moment';
+
 import { endCall } from '../store/actions/actionIndex';
 
 export const updateObject = (oldObject, updatedProperties) => {
@@ -7,6 +9,26 @@ export const updateObject = (oldObject, updatedProperties) => {
         ...updatedProperties
     };
 };
+
+export const formatDate = date => {
+    moment.updateLocale('en', {
+        calendar : {
+            lastDay : '[Yesterday]',
+            sameDay : 'LT',
+            nextDay : '[Tomorrow at] LT',
+            lastWeek : 'dddd',
+            nextWeek : 'dddd [at] LT',
+            sameElse : 'L'
+        }
+    });
+    return moment(date).calendar()
+}
+
+export const formatTime = date => {
+    let timedifference = new Date().getTimezoneOffset();
+
+    return moment.utc(date).utcOffset(timedifference * -1).format('hh:mm');
+}
 
 export const checkValidity = (value, rules) => {
     
@@ -78,18 +100,10 @@ export const getSVG = (name, fill, height, width) => {
                     </path>
                 </svg>
             )
-        case 'endCall':
+        case 'phone':
             return (
-                <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
-                width={width} height={height} viewBox="0 0 612 612">
-                    <path d="M306,243.525c-40.8,0-79.05,7.65-117.3,17.85v79.05c0,10.199-5.1,17.85-15.3,22.949c-25.5,12.75-48.45,28.051-68.85,48.45
-                        c-5.1,5.101-10.2,7.65-17.85,7.65c-7.65,0-12.75-2.55-17.85-7.65L5.1,348.075c-2.55-5.1-5.1-10.2-5.1-17.85
-                        c0-7.65,2.55-12.75,7.65-17.851c76.5-73.95,183.6-119.85,298.35-119.85s221.85,45.9,298.35,119.85
-                        c5.101,5.101,7.65,10.2,7.65,17.851c0,7.649-2.55,12.75-7.65,17.85l-63.75,63.75c-5.1,5.101-10.199,7.65-17.85,7.65
-                        s-12.75-2.55-17.85-7.65c-20.4-17.85-43.351-35.7-68.851-48.45c-7.649-5.1-15.3-12.75-15.3-22.949v-79.05
-                        C385.05,251.175,346.8,243.525,306,243.525z"
-                        fill={fill}
-                    />
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 16 16">
+                    <path fill={fill} d="M15.897 9c0.125 0.867 0.207 2.053-0.182 2.507-0.643 0.751-4.714 0.751-4.714-0.751 0-0.756 0.67-1.252 0.027-2.003-0.632-0.738-1.766-0.75-3.027-0.751s-2.394 0.012-3.027 0.751c-0.643 0.751 0.027 1.247 0.027 2.003 0 1.501-4.071 1.501-4.714 0.751-0.389-0.454-0.307-1.64-0.182-2.507 0.096-0.579 0.339-1.203 1.118-2 0-0 0-0 0-0 1.168-1.090 2.935-1.98 6.716-2v-0c0.021 0 0.042 0 0.063 0s0.041-0 0.063-0v0c3.781 0.019 5.548 0.91 6.716 2 0 0 0 0 0 0 0.778 0.797 1.022 1.421 1.118 2z"></path>
                 </svg>
 
             )

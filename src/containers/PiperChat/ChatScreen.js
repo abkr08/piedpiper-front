@@ -12,7 +12,7 @@ import * as actionCreators from '../../store/actions/actionIndex';
 import OptionsDropbar from '../../components/UI/OptionsDropbar/OptionsDropbar';
 import Search from '../../components/Search/Search';
 
-import placeholderImage from '../../assets/images/p37605.png'
+import * as constants from '../../shared/constants';
 
 class ChatScreen extends Component {
 
@@ -24,14 +24,16 @@ class ChatScreen extends Component {
         showOptions: false,
     }
     componentDidMount () {
-        this.props.chatInit();
+        const { stompClient, initializeWebSocketConnection } = this.props;
+        if(!stompClient){
+            initializeWebSocketConnection();
+        }
         this.scrollToBottom();
     }
     scrollToBottom = () => {
        if (this.scrollRef && this.props.messages.length > 0){
         let lastElement = this.scrollRef.children[this.scrollRef.children.length-1];
         lastElement.scrollIntoView();
-        console.log(lastElement);
     }
 }
     getMessages = room => { 
@@ -46,9 +48,11 @@ class ChatScreen extends Component {
         event.preventDefault();
         let data = {
             text: this.state.text,
-            roomId: this.props.currentRoom.id
+            roomId: this.props.currentRoom.roomId,
+            sender: this.props.user.username
         }
-        this.props.sendMessage(data);
+        // this.props.sendMessage(data);
+        this.props.sendMessageUsingSocket(data)
         this.setState({text: ''});
     }
 
@@ -73,30 +77,44 @@ class ChatScreen extends Component {
     }
 
     render () {
+        const { currentRoom, endCall, user, messages, unopenedMessages } = this.props;
+
         let chat = <Modal show={true}>
                         <Spinner />
                     </Modal>
-        if (this.props.currentRoom){
+        if (currentRoom){
             chat = (
-            <div className={classes.Chat}>
-                <div className={classes.BackgroundImage} />
-                <ChatScreenBar room={this.props.currentRoom} endCall={this.props.endCall}/>
-                <div className={classes.Msgs} ref={(div) => {this.scrollRef = div}}>
-                {
-                    this.props.messages.map(msg => {
-                        return (
-                            <Chat sender={msg.senderId} byCurrentUser={this.props.userId === msg.senderId}
-                            text={msg.text} key={msg.id} />
-                        )
+                <div className={classes.Chat}>
+                    <div className={classes.BackgroundImage} />
+                    <ChatScreenBar room={this.props.currentRoom} endCall={endCall}/>
+                    <div className={classes.Msgs} ref={(div) => {this.scrollRef = div}}>
+                        {
+                            messages.length && messages.map(msg => {
+                                return (
+                                    <Chat 
+                                    sender={msg.sender} 
+                                    byCurrentUser={user.username === msg.sender}
+                                    text={msg.text} key={msg.id}
+                                    isPrivate={currentRoom.roomType === constants.PRIVATE}
+                                    time={msg.createdAt}
+                                    />
+                                )
 
-                    })
-                }
+                            })
+                        }
+                    </div>
+                    {/*currentRoom.customData.customMessage && (
+                        <>
+                        <span className={classes.CustomMessage}>
+                            {currentRoom.customData.customMessage}
+                        </span>
+                        { <button>Delete Room</button> }
+                        </>
+                    )*/}
+                    <form onSubmit={this.onSubmit}>
+                        <input onChange={this.onChange} value={this.state.text} name='text' type="text" placeholder="Enter message" />
+                    </form>
                 </div>
-           
-            <form onSubmit={this.onSubmit}>
-                <input onChange={this.onChange} value={this.state.text} name='text' type="text" placeholder="Enter message" />
-            </form>
-            </div>
             );
         } else {
             chat = (
@@ -125,18 +143,18 @@ class ChatScreen extends Component {
                 <Spinner />
             </Modal>
         );
-        if (this.props.chatkitUser){
+        if (this.props.user){
             contactsPane = (
                 <div className={classes.ContactsPane} >
                 <Profile show={this.state.showProfile}
                 hideProfile={this.toggleProfile}
-                user={this.props.chatkitUser}
+                user={this.props.user}
                 />
                 <div className={classes.MenuBar}>
                     <span onClick={this.toggleProfile}
                     className={classes.MenuImageContainer}
                     >
-                        <img src={placeholderImage} alt='' />
+                        <img src={this.props.user.profile.displayImage} alt='' />
                     </span>
                     <span onClick={this.showOptions}>
                     <svg id="Layer_1" 
@@ -151,15 +169,15 @@ class ChatScreen extends Component {
                 </div>
                 <Search />
                 {
-                    this.props.contacts.length ? this.props.contacts.map(con => {
-                        return <Contact key={con.id} name={con.name} 
-                                    room={con}
-                                    user={this.props.userId}
-                                    unopenedMessages={this.props.unopenedMessages}
-                                    Active={this.props.currentRoom ? 
-                                        con.id === this.props.currentRoom.id : 
+                    user.rooms ? user.rooms.map(room => {
+                        return <Contact key={room.roomId} name={room.name} 
+                                    room={room}
+                                    user={this.props.user}
+                                    unopenedMessages={unopenedMessages[room.roomId]}
+                                    Active={ currentRoom ? 
+                                        room.roomId === currentRoom.roomId : 
                                         false } 
-                                    clicked={() => this.getMessages(con)}
+                                    clicked={() => this.getMessages(room)}
                                 />
                     }) : (
                         <NoContacts />
@@ -180,19 +198,21 @@ class ChatScreen extends Component {
 
 const mapStateToProps = state => {
     return {
-        userId: state.auth.userId,
+        user: state.auth.user,
         channel: state.call.channel,
-        chatkitUser: state.chat.currentUser,
         currentRoom: state.chat.currentRoom,
         messages: state.chat.messages,
         endCall: state.call.endCall,
         unopenedMessages: state.chat.unopenedMessages,
-        contacts: state.chat.contacts
+        contacts: state.chat.contacts,
+        stompClient: state.chat.stompClient
     }
 }
 const mapDispatchToProps = dispatch => {
     return {
         chatInit: () => dispatch(actionCreators.chatInit()),
+        initializeWebSocketConnection: () => dispatch(actionCreators.initializeWebSocketConnection()),
+        sendMessageUsingSocket: message => dispatch(actionCreators.sendMessageUsingSocket(message)),
         getMessages: room => dispatch(actionCreators.getMessages(room)),
         sendMessage: data => dispatch(actionCreators.sendMessage(data))
     }

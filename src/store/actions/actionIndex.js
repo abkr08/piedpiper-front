@@ -2,7 +2,8 @@ export {
     onLogIn,
     onLogout,
     checkAuthState,
-    onRegister
+    onRegister,
+    updateProfile,
 } from './actionCreators/authActionCreators';
 
 export {
@@ -11,7 +12,7 @@ export {
     endCall,
     callAccepted,
     callRejected
-} from './actionCreators/callActionCreatorss';
+} from './actionCreators/callActionCreators';
 
 export {
     chatInit,
@@ -20,5 +21,11 @@ export {
     createNewGroup,
     startNewChat,
     joinRoom,
-    deleteChat
+    deleteChat,
+    initializeWebSocketConnection,
+    sendMessageUsingSocket
 } from './actionCreators/chatActionCreators';
+
+export {
+    resetFields
+} from './actionCreators/sharedActionCreators'
