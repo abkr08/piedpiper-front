@@ -24,9 +24,18 @@ export const formatDate = date => {
     return moment(date).calendar()
 }
 
+export const formatDuration = duration => {
+    let left = 11;
+    let right = 8;
+    if (duration < 3600){
+        right -= 3;
+        left += 3
+    }
+    return new Date(duration * 1000).toISOString().substr(left, right);
+} 
+
 export const formatTime = date => {
     let timedifference = new Date().getTimezoneOffset();
-
     return moment.utc(date).utcOffset(timedifference * -1).format('hh:mm');
 }
 

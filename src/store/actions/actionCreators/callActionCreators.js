@@ -14,6 +14,7 @@ const configuration = {
 let stompClient = null;
 let conn = null;
 let stream = null;
+let requestSent = false;
 
 const prepareCaller = channel => {
     return {
@@ -43,7 +44,7 @@ const handleMessage = message => {
     case "requestToCall":
         //prepare user for call
         console.log('received a request from ' + data.from);
-        handleRequest(data.from); 
+        handleRequest(data.from, data.callType); 
         break;
     case "answerToRequest":
         //user is ready...send them an offer
@@ -88,9 +89,9 @@ const createOffer = to => {
         console.log("Error when creating an offer", error); 
         });
 }
-const handleRequest = from => {
+const handleRequest = (from, callType) => {
     connectedUser = from;
-    store.dispatch({type: actionTypes.ON_INCOMING_CALL, callType: 'video', caller: from});
+    store.dispatch({type: actionTypes.ON_INCOMING_CALL, callType, caller: from});
     conn = new RTCPeerConnection(configuration);
         //when a remote user adds stream to the peer connection, we display it 
         conn.ontrack = function (stream) { 
@@ -131,6 +132,7 @@ export const callUser = (user, type) => {
     connectedUser = user;
     config.type = type;
     console.log('calling ' + user + '....' );
+    store.dispatch({type: actionTypes.CALL_INIT, callType: type})
     return dispatch => {
         conn = new RTCPeerConnection(configuration);
         //when a remote user adds stream to the peer connection, we display it 
@@ -163,13 +165,14 @@ export const callUser = (user, type) => {
   }
 
 const gotStream = (myStream, isInit) => {
-    store.dispatch({type: actionTypes.CALL_INIT})
     if (isInit){
         send({
             type: 'requestToCall',
+            callType: config.type,
             from: currentUsername,
             to: connectedUser
         })
+        requestSent = true;
     }
     stream = myStream;
     store.dispatch(onLocalStream(myStream));
@@ -254,6 +257,7 @@ function handleAnswer(answer, name) {
     if(conn.signalingState !== "stable"){
         conn.setRemoteDescription(new RTCSessionDescription(answer));
     }
+    store.dispatch({type: actionTypes.CALL_ACCEPTED})
 };
 function handleCandidate(candidate) { 
     conn.addIceCandidate(new RTCIceCandidate(candidate)); 
@@ -265,21 +269,26 @@ const callEnded = () => {
     }
 }
 export const endCall = () => {
-    return dispatch => {
-        send({ 
-            type: "leave",
-            to: connectedUser 
-         }); 
+    return (dispatch, getState) => {
+        if(getState().call.callOngoing || requestSent){
+            send({ 
+                type: "leave",
+                to: connectedUser 
+             });
+            requestSent = false;
+        } 
         handleLeave(); 
     }
 }
 
 function handleLeave() { 
-    connectedUser = null; 
-    stream.getTracks().forEach(track => track.stop());
+    connectedUser = null;
+    stream && stream.getTracks().forEach(track => track.stop());
     store.dispatch(callEnded()); 
     store.dispatch(prepareCaller())
-    conn.close();
-    conn.onicecandidate = null; 
-    conn.onaddTrack = null;
+    if(conn){
+        conn.close();
+        conn.onicecandidate = null; 
+        conn.onaddTrack = null;
+    }
  };
