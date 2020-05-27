@@ -12,8 +12,10 @@ import Spinner from '../../components/UI/Spinner/Spinner';
 import * as actionCreators from '../../store/actions/actionIndex';
 import OptionsDropbar from '../../components/UI/OptionsDropbar/OptionsDropbar';
 import Search from '../../components/Search/Search';
+import RoomInfo from '../../components/RoomInfo/RoomInfo';
 
 import * as constants from '../../shared/constants';
+import { getSVG } from '../../shared/utility';
 
 class ChatScreen extends Component {
 
@@ -23,6 +25,9 @@ class ChatScreen extends Component {
         contacts: [], 
         position: {},
         showOptions: false,
+        showRoomDetails: false,
+        room: null,
+        clientWidth: 0,
     }
     componentDidMount () {
         const { stompClient, initializeWebSocketConnection } = this.props;
@@ -35,8 +40,17 @@ class ChatScreen extends Component {
        if (this.scrollRef && this.props.messages.length > 0){
         let lastElement = this.scrollRef.children[this.scrollRef.children.length-1];
         lastElement.scrollIntoView();
+        }
     }
-}
+
+    toggleShowRoomDetails = (e, room) => {
+        this.setState(prevState => {
+            return {
+                showRoomDetails: !prevState.showRoomDetails, room  
+            }
+        })
+    }
+
     getMessages = room => { 
         this.props.getMessages(room);
         this.scrollToBottom();
@@ -62,7 +76,25 @@ class ChatScreen extends Component {
     }
 
     componentDidUpdate () {
+        const { showRoomDetails, clientWidth } = this.state;
+        const { currentRoom } = this.props;
+        
         this.scrollToBottom();
+
+        if(currentRoom && this.chatContainer){
+            window.onresize = () => {
+                const { clientWidth } = this.chatContainer;
+                this.setState({ clientWidth });
+            }
+        }
+        
+        if(showRoomDetails && clientWidth == 0){
+            this.setState({clientWidth: this.chatContainer.clientWidth})
+        }
+    }
+
+    componentWillUnmount(){
+        window.onresize = null;
     }
 
     showOptions = event => {
@@ -78,15 +110,18 @@ class ChatScreen extends Component {
 
     render () {
         const { currentRoom, endCall, user, messages, unopenedMessages, history } = this.props;
-
+        const { room, showRoomDetails, clientWidth } = this.state;
         let chat = <Modal show={true}>
                         <Spinner />
                     </Modal>
         if (currentRoom){
             chat = (
-                <div className={classes.Chat}>
-                    <div className={classes.BackgroundImage} />
-                    <ChatScreenBar room={this.props.currentRoom} endCall={endCall}/>
+                <div className={classes.Chat} ref={div => this.chatContainer = div}>
+                    <div 
+                    className={classes.BackgroundImage}
+                    style={showRoomDetails ? {width: clientWidth} : null}
+                    />
+                    <ChatScreenBar room={this.props.currentRoom} endCall={endCall} showRoomInfo={this.toggleShowRoomDetails}/>
                     <div className={classes.Msgs} ref={(div) => {this.scrollRef = div}}>
                         {
                             messages.length && messages.map(msg => {
@@ -111,7 +146,7 @@ class ChatScreen extends Component {
                         { <button>Delete Room</button> }
                         </>
                     )*/}
-                    <form onSubmit={this.onSubmit}>
+                    <form onSubmit={this.onSubmit} style={showRoomDetails ? {width: clientWidth} : null}>
                         <input onChange={this.onChange} value={this.state.text} name='text' type="text" placeholder="Enter message" />
                     </form>
                 </div>
@@ -147,10 +182,11 @@ class ChatScreen extends Component {
         );
         if (this.props.user){
             contactsPane = (
-                <div className={classes.ContactsPane} >
+                <div className={classes.ContactsPane}>
                 <Profile show={this.state.showProfile}
                 hideProfile={this.toggleProfile}
                 user={this.props.user}
+                style={{width: '100%'}}
                 />
                 <div className={classes.MenuBar}>
                     <span onClick={this.toggleProfile}
@@ -159,13 +195,7 @@ class ChatScreen extends Component {
                         <img src={this.props.user.profile.displayImage} alt='' />
                     </span>
                     <span onClick={this.showOptions}>
-                    <svg id="Layer_1" 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    viewBox="0 0 24 24" width="24" 
-                    height="24"><path fill="#263238" 
-                    fillOpacity=".6" d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z">
-                    </path>
-                    </svg>
+                    {getSVG('ellipsis', '#263238', '24', '24')}
                     </span>
                     {optionsDropbar}
                 </div>
@@ -189,10 +219,23 @@ class ChatScreen extends Component {
             );
             
         }
+        let roomInfo = null
+        if(showRoomDetails){
+           roomInfo = (
+               <div className={classes.RoomInfo}>
+                   <RoomInfo 
+                    room={room}
+                    username={user.username}
+                    toggleShowRoomDetails={this.toggleShowRoomDetails}
+                    />
+               </div>
+           ) 
+        }
         return (
             <div className={classes.ChatScreen}>
                 {contactsPane}
                 {chat}
+                {roomInfo}
             </div>
         )
     }

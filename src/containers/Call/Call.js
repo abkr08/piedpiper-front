@@ -25,9 +25,6 @@ class Call extends Component {
             this.setState({room: callTo});
         }
         this.interval = null;
-        // this.localVideoRef.onplaying = () => {
-        //     alert('video playing!!!')
-        // }
     }
        
     
@@ -52,8 +49,9 @@ class Call extends Component {
         } = this.props;
         const { callDuration } = this.state;
  
-        if(!this.interval){
+        if(!this.interval || !this.localVideoRef.srcObject){
             if (callType === 'video'){
+                // debugger;
                 this.localVideoRef.srcObject = remoteStream ? localStream : null;
                 this.remoteVideoRef.srcObject = remoteStream ? remoteStream : localStream;
             } else {
