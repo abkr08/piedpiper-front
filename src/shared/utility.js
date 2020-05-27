@@ -24,9 +24,18 @@ export const formatDate = date => {
     return moment(date).calendar()
 }
 
+export const formatDuration = duration => {
+    let left = 11;
+    let right = 8;
+    if (duration < 3600){
+        right -= 3;
+        left += 3
+    }
+    return new Date(duration * 1000).toISOString().substr(left, right);
+} 
+
 export const formatTime = date => {
     let timedifference = new Date().getTimezoneOffset();
-
     return moment.utc(date).utcOffset(timedifference * -1).format('hh:mm');
 }
 
@@ -62,7 +71,7 @@ export const checkValidity = (value, rules) => {
     return isValid;
 }
 
-export const getSVG = (name, fill, height, width) => {
+export const getSVG = (name, fill, height, width, fillOpacity) => {
     switch(name) {
         case 'video':
             return (
@@ -120,17 +129,26 @@ export const getSVG = (name, fill, height, width) => {
                 4.193-4.82H9.495v.001z" />
                 </svg>
             )
+        
         case 'checkmark':
-            return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width={width} height={height}><path fill={fill} d="M9.9 21.25l-6.7-6.7-2.2 2.2 8.9 8.9L29 6.55l-2.2-2.2-16.9 16.9z"></path></svg>
+        return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width={width} height={height}><path fill={fill} fillOpacity={fillOpacity} d="M9.9 21.25l-6.7-6.7-2.2 2.2 8.9 8.9L29 6.55l-2.2-2.2-16.9 16.9z"></path></svg>
+    
         case 'reselect':
-            return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={width} height={height}><path fill={fill} d="M19.77 11.73c0 1.64-.5 2.95-1.48 3.89-1.38 1.32-3.26 1.41-3.75 1.41H9.01v-2.1h5.46c.05 0 1.47.04 2.38-.84.55-.53.82-1.32.82-2.37 0-1.27-.33-2.23-.99-2.84-.98-.92-2.43-.85-2.44-.85h-4.23v3.1L4 7.07 10.01 3v2.93h4.16c.03 0 2.29-.13 3.95 1.42 1.09 1.03 1.65 2.5 1.65 4.38z"></path></svg>
+        return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={width} height={height}><path fill={fill} d="M19.77 11.73c0 1.64-.5 2.95-1.48 3.89-1.38 1.32-3.26 1.41-3.75 1.41H9.01v-2.1h5.46c.05 0 1.47.04 2.38-.84.55-.53.82-1.32.82-2.37 0-1.27-.33-2.23-.99-2.84-.98-.92-2.43-.85-2.44-.85h-4.23v3.1L4 7.07 10.01 3v2.93h4.16c.03 0 2.29-.13 3.95 1.42 1.09 1.03 1.65 2.5 1.65 4.38z"></path></svg>
+    
         case 'close':
-            return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={width} height={height}><path fill={fill} d="M19.058 17.236l-5.293-5.293 5.293-5.293-1.764-1.764L12 10.178 6.707 4.885 4.942 6.649l5.293 5.293-5.293 5.293L6.707 19 12 13.707 17.293 19l1.765-1.764z"></path></svg>
+        return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={width} height={height}><path fill={fill} fillOpacity={fillOpacity} d="M19.058 17.236l-5.293-5.293 5.293-5.293-1.764-1.764L12 10.178 6.707 4.885 4.942 6.649l5.293 5.293-5.293 5.293L6.707 19 12 13.707 17.293 19l1.765-1.764z"></path></svg>
+    
         case 'plus':
-            return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width={width} height={height}><path fill={fill} d="M19.619 14.803h-4.816v4.816h-1.605v-4.816H8.381v-1.605h4.816V8.381h1.605v4.816h4.816l.001 1.606z"></path></svg>
+        return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width={width} height={height}><path fill={fill} d="M19.619 14.803h-4.816v4.816h-1.605v-4.816H8.381v-1.605h4.816V8.381h1.605v4.816h4.816l.001 1.606z"></path></svg>
+    
         case 'minus':
-            return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width={width} height={height}><path fill={fill} d="M8.381 14.803v-1.605h11.237v1.605H8.381z"></path></svg>  
-        default:
+        return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width={width} height={height}><path fill={fill} d="M8.381 14.803v-1.605h11.237v1.605H8.381z"></path></svg>  
+    
+        case 'pencil':
+            return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={width} height={height}><path fill={fill} fillOpacity={fillOpacity} d="M3.95 16.7v3.4h3.4l9.8-9.9-3.4-3.4-9.8 9.9zm15.8-9.1c.4-.4.4-.9 0-1.3l-2.1-2.1c-.4-.4-.9-.4-1.3 0l-1.6 1.6 3.4 3.4 1.6-1.6z"></path></svg>
+        
+            default:
             return;
     }
 }

@@ -3,7 +3,7 @@ import swal from 'sweetalert2';
 import classes from './Call.module.css';
 import { connect } from 'react-redux';
 import * as callActionCreators from '../../store/actions/actionIndex'
-import { getSVG } from '../../shared/utility';
+import { getSVG, formatDuration } from '../../shared/utility';
 
 
 class Call extends Component {
@@ -11,7 +11,9 @@ class Call extends Component {
     state = {
           id: null,
           room: null,
-          isPlaying: false
+          isPlaying: false, 
+          callDuration: 0,
+          showCallButtons: false
     }
        
     componentDidMount (){
@@ -22,6 +24,7 @@ class Call extends Component {
             callUser(callTo, callType);
             this.setState({room: callTo});
         }
+        this.interval = null;
     }
        
     
@@ -41,16 +44,20 @@ class Call extends Component {
             callType, localStream, 
             remoteStream,
             callEnded,
+            callOngoing,
             resetFields
         } = this.props;
-        
-        if (callType === 'video'){
-            this.localVideoRef.srcObject = remoteStream ? localStream : null;
-            this.remoteVideoRef.srcObject = remoteStream ? remoteStream : localStream;
-            console.log(remoteStream)
-        } else {
-            this.localAudioRef.srcObject = localStream;
-            this.remoteAudioRef.srcObject = remoteStream;
+        const { callDuration } = this.state;
+ 
+        if(!this.interval || !this.localVideoRef.srcObject){
+            if (callType === 'video'){
+                // debugger;
+                this.localVideoRef.srcObject = remoteStream ? localStream : null;
+                this.remoteVideoRef.srcObject = remoteStream ? remoteStream : localStream;
+            } else {
+                this.localAudioRef.srcObject = localStream;
+                this.remoteAudioRef.srcObject = remoteStream;
+            }
         }
         if (error){
             const confirmed = await swal.fire({
@@ -67,12 +74,35 @@ class Call extends Component {
             closeModal();
             let fields = ['callEnded'];
             resetFields(fields);
+            clearInterval(this.interval);
+        }
+
+        if (callOngoing && callDuration == 0){
+            this.updateTimer();
         }
     }
-       
+
+    componentWillUnmount(){
+        clearInterval(this.interval);
+    }
+
+    updateTimer = () => {
+        clearInterval(this.interval);
+        this.setState(prevState => {
+            return { callDuration: prevState.callDuration + 1}
+        })
+        this.interval = setInterval(this.updateTimer, 1000);
+    }
+    
+    showButtons = () => {
+        const { showCallButtons } = this.state;
+        if(this.remoteVideoRef.readyState == 4 && !showCallButtons){
+            this.setState({ showCallButtons: true })
+        }
+    }
     render () { 
         const { callType, remoteStream, localStream } = this.props;
-        // if(this.remoteVideoRef){console.log(this.remoteVideoRef, this.remoteVideoRef.src)};
+        const { callDuration, showCallButtons } = this.state;
         let call = null;
         if (callType === 'video'){
             call = (
@@ -83,20 +113,24 @@ class Call extends Component {
                         </video>
 
                         <video className={classes.RemoteVideo} autoPlay muted={!remoteStream}
-                        ref={(rVid)=> this.remoteVideoRef = rVid}>
+                        ref={(rVid)=> this.remoteVideoRef = rVid}
+                        onLoadedData={this.showButtons}
+                        >
                         </video>
                     </div>
-                    { (localStream || remoteStream) &&
+                    { showCallButtons && (
                         <div className={classes.CallButtons}>
                             <span  onClick={this.endCall} 
                             className={classes.EndCallBtn}>
                                 {getSVG('phone', 'white', '50', '50')}
                             </span>
-                            <span  onClick={this.endCall} 
+                            <span  onClick={null} 
                             className={classes.MuteBtn}>
                             {getSVG('microphone', 'white', '50', '50')}
                             </span>
+                            { callDuration > 0 && ( <span className={classes.Duration}>{formatDuration(callDuration)}</span> )}
                         </div>
+                    )
                     }
                 </React.Fragment>
             );
@@ -124,7 +158,8 @@ const mapStateToProps = state => {
         incomingCall: state.call.incomingCall,
         caller: state.call.caller,
         error: state.call.error,
-        callEnded: state.call.callEnded
+        callEnded: state.call.callEnded,
+        callOngoing: state.call.callOngoing
     }
 }
 const mapDispatchToProps = dispatch => {

@@ -23,7 +23,7 @@ const callReducer = (state = initialState, action) => {
             }
         case actionTypes.CALL_INIT: 
             return {
-                ...state, callStarted: true, callEnded: false
+                ...state, callStarted: true, callEnded: false, callType: action.callType
             }
         case actionTypes.ON_TRACK: 
             return {

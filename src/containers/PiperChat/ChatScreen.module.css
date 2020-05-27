@@ -9,10 +9,11 @@
 svg { 
     cursor: pointer;
 }
-.ContactsPane {
+.ContactsPane, .RoomInfo {
     height: 100vh;
     background-color: white;
     width: 35%;
+    position: relative;
     border-right: 1px solid rgba(0,0,0,.08);
     overflow-y: scroll;
     overflow-x: hidden;
@@ -46,20 +47,24 @@ svg {
     cursor: pointer;
 }
 
+
 .BackgroundImage {
     background-image: url('../../assets/images/bg-chat-tile_9e8a2898faedb7db9bf5638405cf81ae.png');
-    position: absolute;
+    position: fixed;
     top: 0;
     height: 100%;
-    width: inherit;
+    width: 100%;
     opacity: .06;
 }
 .Chat {
     height: 100vh;
     background-color: #E5DDD5;
+    box-sizing: content-box;
     width: 65%;
+    flex-grow: 1;
     overflow-y: scroll;
     text-align: center;
+    position: relative;
 }
 
 .Msgs {
@@ -82,6 +87,7 @@ svg {
     bottom: 0;
     left: 0;
     outline: none;
+    box-sizing: border-box;
 }
 .CustomMessage {
     padding: 10px;

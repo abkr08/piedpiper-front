@@ -38,7 +38,7 @@ class ChatScreenBar extends Component {
         this.setState({showModal: false})
     }
     render() {
-        const { room, user } = this.props;
+        const { room, user, showRoomInfo } = this.props;
         let isPrivate = room.roomType == constants.PRIVATE;
         let otherUser;
         if(isPrivate){
@@ -65,13 +65,13 @@ class ChatScreenBar extends Component {
         }
         return (
             <div className={classes.ChatScreenBar}>
-                <div className={classes.FloatedRight}>
+                <div className={classes.FloatedRight} onClick={e => showRoomInfo(e, room)}>
                    <img src={isPrivate ? otherUser.profile.displayImage : room.displayImage} alt=''/>
                    <span className={classes.RoomDetails}>
                     <span className={classes.RoomName}>{isPrivate ? otherUser.username : room.name}</span>
                     { !isPrivate &&
                         (<span className={classes.RoomMembers}>
-                            Ahmed, Aunty Hauwa, Aunty Lami, Hajju
+                            {room.members.map(mem => mem.username).join(", ")}
                         </span>)
                     }
                    </span>
@@ -80,7 +80,7 @@ class ChatScreenBar extends Component {
                     {  isPrivate &&  
                     <>
                         <span onClick={this.onVideoCallInit}>
-                        {getSVG('video', '#263238', '28', '24')}
+                            {getSVG('video', '#263238', '28', '24')}
                         </span>
                         <span onClick={this.onVoiceCallInit}>
                             {getSVG('voice', '#263238', '24', '24')}
