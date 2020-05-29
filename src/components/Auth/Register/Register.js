@@ -117,10 +117,10 @@ class Register extends Component {
 
   componentDidUpdate () {
     const { loading } = this.state;
-    const { error, registrationSuccess, history } = this.props;
+    const { authError, registrationSuccess, history } = this.props;
     if (registrationSuccess){
       history.push('/login');
-    } else if (error && loading){
+    } else if (authError && loading){
       this.setState({loading: false})
     }
   }

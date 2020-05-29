@@ -39,7 +39,6 @@ export const onLogIn = (data) => {
            dispatch(checkTokenValidity(expiresIn));
          })
          .catch(err => {
-                console.log(err);
              dispatch(logInFailed(err))
          })
     }

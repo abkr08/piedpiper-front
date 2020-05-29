@@ -6,7 +6,8 @@ const initialState = {
     contacts: [],
     currentRoom: null,
     messages: [],
-    unopenedMessages: {}
+    unopenedMessages: {},
+    startNewChatError: null,
 };
 
 const removeItem = (obj, item) => {
@@ -62,6 +63,10 @@ const chatReducer = (state = initialState, action) => {
                 }
             })
             return { ...state, ...newState }
+        case actionTypes.START_NEW_CHAT_FAILED:
+            return { ...state, startNewChatError: action.error }
+        case actionTypes.START_NEW_CHAT_SUCCESS:
+            return { ...state, contacts: [...state.contacts, action.room], currentRoom: action.room}
         default: 
             return state;
     }

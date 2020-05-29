@@ -224,21 +224,22 @@ export const createNewGroup = data => {
           })
     }
 }
-const startNewChatSuccess = () => {
+const startNewChatSuccess = room => {
     return {
-        type: actionTypes.START_NEW_CHAT_SUCCESS
+        type: actionTypes.START_NEW_CHAT_SUCCESS,
+        room
     }
 }
 const startNewChatFailed = err => {
     return {
         type: actionTypes.START_NEW_CHAT_FAILED,
-        err
+        error: err
     }
 }
 
 const checkRoomDuplicity = (initiator, potentialParticipant) => {
-    let roomName = `${initiator.id}and${potentialParticipant}`;
-    let alternateRoomName = `${potentialParticipant}and${initiator.id}`;
+    let roomName = `${initiator.username}and${potentialParticipant}`;
+    let alternateRoomName = `${potentialParticipant}and${initiator.username}`;
 
     let roomExists = initiator.rooms.findIndex(room => {
         console.log(roomName, alternateRoomName, room.name)
@@ -257,41 +258,38 @@ const checkRoomDuplicity = (initiator, potentialParticipant) => {
 }
 export const startNewChat = data => {
     return dispatch => {
-        let token = localStorage.getItem('token');
         let user = JSON.parse(localStorage.getItem('user'));
+        if (data.chatParticipant == user.username){
+            let error = {error: 'You cannot create a private room with yourself. There\'s only one of you' };
+            dispatch(startNewChatFailed(error));
+            return;
+        }
+        let token = localStorage.getItem('token');
+        let roomData = {
+            "roomType": 1,
+            "participants": [user.username, data.chatParticipant],
+            "alternateRoomName": data.chatParticipant + 'and' + user.username,
+            "name": user.username + 'and' + data.chatParticipant,
+            "createdBy": user.username
+        }
         let { userId, profileImage }  = user;
-        axios.get(`/search/${data.chatParticipant}`, {headers: {'x-auth-token': token}})
-            .then(res => {
-                let { isDuplicate, roomId } = checkRoomDuplicity(currentUser, data.chatParticipant);
-                if (!isDuplicate){
-                    currentUser.createRoom({
-                        name: `${currentUser.id}and${data.chatParticipant}`,
-                        private: true,
-                        addUserIds: [data.chatParticipant],
-                        customData: {
-                            [userId]:  profileImage,
-                            [data.chatParticipant]: res.data.avatar
-                        }     
-                    })
-                        .then(res => {
-                            console.log(res);
-                            dispatch(startNewChatSuccess());
-                            dispatch(subscribeToRooms(currentUser));
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            dispatch(startNewChatFailed(err));
-                        });
-                } else {
-                    currentUser.joinRoom({
-                        roomId: roomId
-                    }).then(res => {
-                        console.log('Room successfully joined' + res);
-                    }).catch(err => console.error(err));
-                }
-                
+        let { isDuplicate, roomId } = checkRoomDuplicity(user, data.chatParticipant);
+        if (!isDuplicate){
+        axios.post(constants.NEW_ROOM_URL, roomData, {
+            headers: {'authorization': 'Bearer ' + token}
+        }).then(res => {
+            console.log(res);
+            dispatch(startNewChatSuccess(res.data));
+            dispatch(subscribeToRooms(currentUser));
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                // console.log(err.response);
+                dispatch(startNewChatFailed(err.response.data));
+            });
+            } else {
+                let error = {error: 'Room already exists'};
+                dispatch(startNewChatFailed(error));
+            }
     }
 }
 export const joinRoom = roomId => {

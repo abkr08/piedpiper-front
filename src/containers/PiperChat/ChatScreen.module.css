@@ -98,3 +98,14 @@ svg {
     position: relative;
     bottom: 60px;
 }
+
+.SearchContact {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+}
+
+.SearchContact p {
+    color: #1ECD97;
+    cursor: pointer;
+}
