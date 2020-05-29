@@ -75,7 +75,7 @@ class Login extends Component {
   };
 
   onSubmit = e => {
-    const { onLogIn } = this.props;
+    const { onLogIn, resetFields } = this.props;
     this.setState({ loading: true})
     e.preventDefault();
     const controls = {...this.state.controls}
@@ -84,6 +84,8 @@ class Login extends Component {
       data[control] = controls[control]['value'];
     }
     onLogIn(data);
+    const fields = ['authError']
+    resetFields(fields);
   };
 
   comingSoon = () => {

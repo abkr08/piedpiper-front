@@ -11,8 +11,10 @@ import Modal from '../Modal/Modal';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import * as actionCreators from '../../store/actions/actionIndex';
 import OptionsDropbar from '../../components/UI/OptionsDropbar/OptionsDropbar';
+import Button from '../../components/UI/Button/Button';
 import Search from '../../components/Search/Search';
 import RoomInfo from '../../components/RoomInfo/RoomInfo';
+import swal from 'sweetalert2';
 
 import * as constants from '../../shared/constants';
 import { getSVG } from '../../shared/utility';
@@ -24,10 +26,13 @@ class ChatScreen extends Component {
         showProfile: false,
         contacts: [], 
         position: {},
+        rooms: this.props.user.rooms || [],
         showOptions: false,
         showRoomDetails: false,
         room: null,
         clientWidth: 0,
+        searchString: '',
+        searchingContact: false
     }
     componentDidMount () {
         const { stompClient, initializeWebSocketConnection } = this.props;
@@ -35,6 +40,7 @@ class ChatScreen extends Component {
             initializeWebSocketConnection();
         }
         this.scrollToBottom();
+        this.updated = false;
     }
     scrollToBottom = () => {
        if (this.scrollRef && this.props.messages.length > 0){
@@ -75,9 +81,29 @@ class ChatScreen extends Component {
             return {showProfile: !prevState.showProfile, showOptions: false}});
     }
 
-    componentDidUpdate () {
+    onSearch = text => {
+        const { rooms } = this.props.user;
+        if (rooms.length && text.length){
+            const regex = new RegExp(`^${text}`, 'i');
+            let suggestions = rooms.sort().filter(room => regex.test(room.name));
+            this.setState({ rooms: suggestions, searchString: text })
+        } else if (text.length){
+            this.setState({ searchString: text })
+        } else {
+            this.setState({ rooms: rooms, searchString: '' })
+        }
+    }
+
+    onSearchSubmitted = () => {
+        this.setState({ searchingContact: true })
+        const { searchString } = this.state;
+        let data = { chatParticipant: searchString.toLowerCase() };
+        this.props.onStartNewChat(data);
+    }
+
+    async componentDidUpdate () {
         const { showRoomDetails, clientWidth } = this.state;
-        const { currentRoom } = this.props;
+        const { currentRoom, startNewChatError, resetFields, user } = this.props;
         
         this.scrollToBottom();
 
@@ -90,6 +116,25 @@ class ChatScreen extends Component {
         
         if(showRoomDetails && clientWidth == 0){
             this.setState({clientWidth: this.chatContainer.clientWidth})
+        }
+
+        if(!this.updated && startNewChatError){
+            this.updated = true;
+            const { error } = startNewChatError;
+            this.setState({ searchingContact: false })
+            const result = await swal.fire({
+                title: error,
+                icon: 'error',
+                showCloseButton: true,
+                focusConfirm: false,
+                confirmButtonText: 'Close'
+            })
+            if (result){
+                this.setState({ searchString: '', rooms: user.rooms });
+                const fields = ['startNewChatError']
+                resetFields(fields);
+                this.updated = false;
+            }
         }
     }
 
@@ -110,7 +155,7 @@ class ChatScreen extends Component {
 
     render () {
         const { currentRoom, endCall, user, messages, unopenedMessages, history } = this.props;
-        const { room, showRoomDetails, clientWidth } = this.state;
+        const { rooms, room, showRoomDetails, clientWidth, searchString, searchingContact } = this.state;
         let chat = <Modal show={true}>
                         <Spinner />
                     </Modal>
@@ -199,19 +244,31 @@ class ChatScreen extends Component {
                     </span>
                     {optionsDropbar}
                 </div>
-                <Search />
+                <Search value={searchString} onSearch={this.onSearch}/>
                 {
-                    user.rooms ? user.rooms.map(room => {
-                        return <Contact key={room.roomId} name={room.name} 
-                                    room={room}
-                                    user={this.props.user}
-                                    unopenedMessages={unopenedMessages[room.roomId]}
-                                    Active={ currentRoom ? 
-                                        room.roomId === currentRoom.roomId : 
-                                        false } 
-                                    clicked={() => this.getMessages(room)}
-                                />
-                    }) : (
+                    user.rooms.length || searchString.length ? (
+                        rooms.length ? rooms.map(room => {
+                            return <Contact key={room.roomId} name={room.name} 
+                                        room={room}
+                                        user={this.props.user}
+                                        unopenedMessages={unopenedMessages[room.roomId]}
+                                        Active={ currentRoom ? 
+                                            room.roomId === currentRoom.roomId : 
+                                            false } 
+                                        clicked={() => this.getMessages(room)}
+                                    />
+                        }) : (
+                            <div className={classes.SearchContact}>
+                                <h3>Contact not found</h3>
+                                <span>
+                                <p onClick={this.onSearchSubmitted}>Search for contact on the server? </p>
+                                { searchingContact && <i className='fas fa-spinner fa-spin' /> }
+                                </span>
+                                
+                            </div>
+                        )
+                    ) :
+                    (
                         <NoContacts />
                     )
                 }
@@ -250,7 +307,8 @@ const mapStateToProps = state => {
         endCall: state.call.endCall,
         unopenedMessages: state.chat.unopenedMessages,
         contacts: state.chat.contacts,
-        stompClient: state.chat.stompClient
+        stompClient: state.chat.stompClient,
+        startNewChatError: state.chat.startNewChatError
     }
 }
 const mapDispatchToProps = dispatch => {
@@ -259,7 +317,9 @@ const mapDispatchToProps = dispatch => {
         initializeWebSocketConnection: () => dispatch(actionCreators.initializeWebSocketConnection()),
         sendMessageUsingSocket: message => dispatch(actionCreators.sendMessageUsingSocket(message)),
         getMessages: room => dispatch(actionCreators.getMessages(room)),
-        sendMessage: data => dispatch(actionCreators.sendMessage(data))
+        sendMessage: data => dispatch(actionCreators.sendMessage(data)),
+        onStartNewChat: data => dispatch(actionCreators.startNewChat(data)),
+        resetFields: fields => dispatch(actionCreators.resetFields(fields))
     }
 }
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ChatScreen));
