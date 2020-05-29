@@ -1,6 +1,6 @@
 const env = 'prod';
 const BASE_URL_DEV = 'http://localhost:8081/';
-const BASE_URL_PROD = 'http://piperchat-env.eba-fuup6m9m.eu-west-2.elasticbeanstalk.com/';
+const BASE_URL_PROD = 'https://piperchat-env.eba-fuup6m9m.eu-west-2.elasticbeanstalk.com/';
 
 export const BASE_URL = env == 'dev' ? BASE_URL_DEV : BASE_URL_PROD;
  
