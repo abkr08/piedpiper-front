@@ -5,7 +5,8 @@ import * as actionCreators from '../../../store/actions/actionIndex';
 import Input from '../../UI/Input/Input';
 import { checkValidity, updateObject} from '../../../shared/utility';
 import Button from '../../UI/Button/Button';
-import ErrorBox from '../../UI/ErrorBox/ErrorBox'
+import ErrorBox from '../../UI/ErrorBox/ErrorBox';
+import swal from 'sweetalert2';
 
 class Register extends Component {
 
@@ -115,11 +116,21 @@ class Register extends Component {
     this.props.onRegister(data);
   };
 
-  componentDidUpdate () {
+  async componentDidUpdate () {
     const { loading } = this.state;
     const { authError, registrationSuccess, history } = this.props;
     if (registrationSuccess){
-      history.push('/login');
+        const result = await swal.fire({
+          title: 'Registration Successful',
+          text: 'Use your email and password to sign in',
+          icon: 'success',
+          showCloseButton: true,
+          focusConfirm: false,
+          confirmButtonText: 'Close'
+      })
+      if (result){
+          history.push('/login');
+      }
     } else if (authError && loading){
       this.setState({loading: false})
     }

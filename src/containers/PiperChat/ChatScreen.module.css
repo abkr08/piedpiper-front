@@ -89,14 +89,45 @@ svg {
     outline: none;
     box-sizing: border-box;
 }
+
+.Chat form input:disabled {
+    cursor: not-allowed;
+}
+
 .CustomMessage {
     padding: 10px;
     text-align: center;
+    font-size: 0.8em;
     background-color: rgba(225,245,254,.92);
     opacity: 0.9;
     border-radius: 4px;
     position: relative;
     bottom: 60px;
+}
+
+.AcceptRequest, .DenyRequest {
+    position: relative;
+    bottom: 100px;
+    font-size: 1.5em;
+    margin-left: 20px;
+    padding: 12px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    outline: none;
+}
+
+.AcceptRequest:hover, .DenyRequest:hover {
+    opacity: 0.8;
+}
+
+.AcceptRequest {
+    background-color: #1ECD97;
+}
+
+.DenyRequest {
+    background-color: #E61A23;
 }
 
 .SearchContact {

@@ -3,16 +3,18 @@ import * as actionTypes from '../actions/actions';
 
 const initialState = {
     currentUser: null,
-    contacts: [],
+    rooms: null,
     currentRoom: null,
-    messages: [],
+    messages: {},
     unopenedMessages: {},
     startNewChatError: null,
+    contactSearchSuccessful: null
 };
 
 const removeItem = (obj, item) => {
     return Object.keys(obj).reduce((acc, key) => {
-        if (key !== item) {
+        if (key != item) {
+            console.log(acc, key, item);
           return {...acc, [key]: obj[key]}
         }
         return acc;
@@ -24,49 +26,90 @@ const chatReducer = (state = initialState, action) => {
             return {
                 ...state, currentUser: action.currentUser, stompClient: action.stompClient
             }
-        case actionTypes.FETCH_MESSAGES_SUCCESS: {
+        
+        case actionTypes.ON_ROOMS_LOADED:
             return {
-                ...state, messages: action.messages, currentRoom: action.room,
-                unopenedMessages: removeItem(state.unopenedMessages, action.roomId)
+                ...state, rooms: action.rooms
             }
-        }
-        case actionTypes.ON_NEW_MESSAGE: 
-            if (action.belongsToCurrentRoom || action.message.sender == state.currentUser.username){
-                return {
-                    ...state, messages: [...state.messages, action.message]
-                }
-            } else {
+
+        case actionTypes.FETCH_MESSAGES_SUCCESS: 
+            return {
+                ...state, messages: {...state.messages, [action.room.roomId]: action.messages }, currentRoom: action.room,
+                unopenedMessages: removeItem(state.unopenedMessages, action.room.roomId)
+            }
+
+        case actionTypes.CHANGE_ROOM:
+            const { room } = action;
+            return { 
+                ...state, currentRoom: room, 
+                unopenedMessages: removeItem(state.unopenedMessages, room.roomId), messages: action.messages
+            }
+        
+        case actionTypes.MESSAGE_SENT:
+            return {...state, rooms: action.rooms }
+        
+        case actionTypes.ON_NEW_MESSAGE:
+            const {  belongsToCurrentRoom, message } = action;
+            const { roomId } = message;
+            let newState = {
+                ...state, rooms: action.rooms }
+            
+            if (!belongsToCurrentRoom) {
                 let unopenedMessagesCopy = {...state.unopenedMessages};
-                if (unopenedMessagesCopy.hasOwnProperty(action.message.roomId)){
-                    unopenedMessagesCopy[action.message.roomId].push(action.message);
+                if (unopenedMessagesCopy.hasOwnProperty(roomId)){
+                    unopenedMessagesCopy[roomId].push(message);
                 } else {
-                    unopenedMessagesCopy[action.message.roomId] = [action.message];
+                    unopenedMessagesCopy[roomId] = [message];
+                } 
+                newState['unopenedMessages'] = unopenedMessagesCopy;
+            } else {
+                if (!newState.messages.hasOwnProperty(roomId)){
+                    newState.messages[roomId] = [];
                 }
-                return { 
-                    ...state, unopenedMessages: unopenedMessagesCopy
-               }  
+                newState.messages = {...newState.messages, [roomId]: [...state.messages[roomId], message]}
             }
-        case actionTypes.ON_ROOMS_FETCHED:
+            return newState;
+            
+        case actionTypes.SUBSCRIPTION_SUCCESSFUL:
             return {
-                ...state, contacts: action.contacts
+                ...state, rooms: action.rooms
             }
-        case actionTypes.SUBSCRIPTIONSUCCESSFUL:
-            return {
-                ...state, contacts: action.rooms
-            }
+
         case actionTypes.RESET_FIELDS:
-            let newState = {};
+            let stateCopy = {};
             let { fields } = action;
             fields.forEach(field => {
                 if(state.hasOwnProperty(field)){
-                    newState[field] = null;
+                    stateCopy[field] = null;
                 }
             })
-            return { ...state, ...newState }
+            return { ...state, ...stateCopy }
+        case actionTypes.CHAT_REQUEST_ACCEPTED:
+            newState = { ...state, rooms: action.rooms }
+            if(state.currentRoom.roomId == action.currentRoom.roomId){
+                newState.currentRoom = action.currentRoom;
+            } 
+            return newState;
+        case actionTypes.CHAT_REQUEST_DENIED:
+            return {
+                ...state, rooms: action.rooms
+            }
+        case actionTypes.ON_CHAT_REQUEST:
+            return {
+                ...state, rooms: action.rooms
+            }
+
         case actionTypes.START_NEW_CHAT_FAILED:
             return { ...state, startNewChatError: action.error }
+        
         case actionTypes.START_NEW_CHAT_SUCCESS:
-            return { ...state, contacts: [...state.contacts, action.room], currentRoom: action.room}
+            return { ...state, rooms: action.rooms, currentRoom: action.room, contactSearchSuccessful: true}
+
+        case actionTypes.ON_ACCEPT_CHAT_REQUEST:
+            return {
+                ...state, rooms: action.rooms, currentRoom: action.currentRoom
+            } 
+
         default: 
             return state;
     }

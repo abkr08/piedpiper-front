@@ -13,7 +13,8 @@ class Call extends Component {
           room: null,
           isPlaying: false, 
           callDuration: 0,
-          showCallButtons: false
+          showCallButtons: false, 
+          muted: false
     }
        
     componentDidMount (){
@@ -36,7 +37,10 @@ class Call extends Component {
             closeModal();
         }
     }
-        
+    
+    muteCall = () => {
+        this.setState({ muted: true})
+    }
     
     async componentDidUpdate () {
         const { 
@@ -102,7 +106,7 @@ class Call extends Component {
     }
     render () { 
         const { callType, remoteStream, localStream } = this.props;
-        const { callDuration, showCallButtons } = this.state;
+        const { callDuration, showCallButtons, muted } = this.state;
         let call = null;
         if (callType === 'video'){
             call = (
@@ -112,7 +116,7 @@ class Call extends Component {
                             ref={(lVid)=> this.localVideoRef = lVid}>
                         </video>
 
-                        <video className={classes.RemoteVideo} autoPlay muted={!remoteStream}
+                        <video className={classes.RemoteVideo} autoPlay muted={muted}
                         ref={(rVid)=> this.remoteVideoRef = rVid}
                         onLoadedData={this.showButtons}
                         >
@@ -124,7 +128,7 @@ class Call extends Component {
                             className={classes.EndCallBtn}>
                                 {getSVG('phone', 'white', '50', '50')}
                             </span>
-                            <span  onClick={null} 
+                            <span  onClick={this.muteCall} 
                             className={classes.MuteBtn}>
                             {getSVG('microphone', 'white', '50', '50')}
                             </span>

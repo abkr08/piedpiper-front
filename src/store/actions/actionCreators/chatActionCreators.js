@@ -1,20 +1,35 @@
 import * as actionTypes from '../actions';
+import { sortContactsByDate } from '../../../shared/utility'
+import UIfx from 'uifx';
 import { getCallerReady } from '../actionIndex';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
-import { ChatManager, TokenProvider } from '@pusher/chatkit-client';
+import Dexie from 'dexie';
 import axios from '../../../Axios';
 import * as constants from '../../../shared/constants';
+import ding from '../../../assets/audio/ding.mp3';
 
 let currentUser = null;
 let stompClient = null;
+let db = null;
 let ws = null;
+
+const dingg = new UIfx(
+    ding,
+    {
+      volume: 0.1, // number between 0.0 ~ 1.0
+      throttleMs: 100
+    }
+  )
+
 export const initializeWebSocketConnection = () => {
+    initializeDB();
     currentUser = JSON.parse(localStorage.getItem("user"));
     return (dispatch, getState) => {
         connectAndReconnect(() => openSocket(dispatch, getState));
 }
 }
+
 const connectAndReconnect = (successCallback) => {
     ws = new SockJS(constants.WS_SERVER_URL);
     stompClient = Stomp.over(ws);
@@ -22,7 +37,7 @@ const connectAndReconnect = (successCallback) => {
     stompClient.connect({}, (frame) => {
         if(stompClient.connected){
             successCallback();
-        }
+        } 
     }, () => {
       setTimeout(() => {
         connectAndReconnect(successCallback);
@@ -31,11 +46,12 @@ const connectAndReconnect = (successCallback) => {
   }
 
 const openSocket = (dispatch, getState) => {
-    const { rooms } = currentUser; 
+    const { rooms } = currentUser;
+    subscribeToOwnChannel(dispatch, getState);
     rooms.forEach(room => {
         stompClient.subscribe("/socket-publisher/" + room.roomId, message => {
             handleResult(dispatch, getState, message);
-          });
+        });
     });
     dispatch(chatInitSuccess(currentUser, stompClient));
     dispatch(getCallerReady(stompClient))   
@@ -44,60 +60,109 @@ const openSocket = (dispatch, getState) => {
 const handleResult = (dispatch, getState, message) => {
     let messageResult = JSON.parse(message.body);
     let belongsToCurrentRoom = false;
-    const { currentRoom } = getState().chat;
-    if (currentRoom && currentRoom.id === messageResult.roomId){
+    const { currentRoom, rooms } = getState().chat;
+    if (currentRoom && currentRoom.roomId === messageResult.roomId){
         belongsToCurrentRoom = true;
     }
-    dispatch(getRooms());
-    dispatch(onNewMessage(messageResult, belongsToCurrentRoom));
-      
-
+    let user = JSON.parse(localStorage.getItem('user'));
+    if (messageResult.sender !== user.username){
+        dingg.play();
+    }
+    let index = findRoomIndex(rooms, messageResult.roomId);
+    rooms[index].updatedAt = new Date;
+    user.rooms = rooms; 
+    localStorage.setItem('user', JSON.stringify(user));
+    dispatch(onNewMessage(messageResult, belongsToCurrentRoom, sortContactsByDate(rooms)));
 }
 
-export const sendMessageUsingSocket = message => {
+const subscribeToOwnChannel = (dispatch, getState) => {
+    stompClient.subscribe(`/socket-publisher/${currentUser.username}`, notification => {
+        handleNotification(notification, dispatch, getState);
+    });
+}
+
+const handleNotification = (data, dispatch, getState) => {
+    let notification = JSON.parse(data.body);
+    switch(notification.type){
+        case 'chatRequest':
+            handleChatRequest(notification.data, dispatch);
+            break;
+        case 'acceptChatRequest':
+            handleChatRequestAccepted(notification.data, dispatch, getState);
+            break;
+        case 'chatRequestDenied':
+            handleChatRequestDenied(notification.data, dispatch);
+            break;
+        default:
+            dispatch({type: actionTypes.ON_NEW_NOTIFICATION, data: notification.data})
+    }
+}
+
+const onChatRequest = rooms => ({ type: actionTypes.ON_CHAT_REQUEST, rooms});
+const chatRequestAccepted = (rooms, currentRoom) => ({ type: actionTypes.CHAT_REQUEST_ACCEPTED, rooms, currentRoom});
+const chatRequestDenied = rooms => ({ type: actionTypes.CHAT_REQUEST_DENIED, rooms});
+
+const handleChatRequest = (room, dispatch, getState) => {
+    let user  = JSON.parse(localStorage.getItem('user')); 
+    let { rooms } = user;
+    rooms.push(room);
+    user = { ...user, rooms }
+    localStorage.setItem('user', JSON.stringify(user));
+    dispatch(onChatRequest(sortContactsByDate(rooms)));
+}
+const findRoomIndex = (rooms, id) => {
+    for (let i = 0; i < rooms.length; i++){
+        let rm = rooms[i];
+        debugger;
+        if(rm.roomId == id){
+            return i;
+        }
+    }
+    return -1;
+} 
+const handleChatRequestAccepted = (room, dispatch, getState) => {
+    subscribeToRoom(dispatch, getState, room.roomId);
+    let user = JSON.parse(localStorage.getItem('user')); 
+    let { rooms } = user;
+    let index = findRoomIndex(rooms, room.roomId);
+    room.isARequest = false;
+    rooms[index] = room;
+    user = { ...user, rooms }
+    localStorage.setItem('user', JSON.stringify(user));
+    dispatch(chatRequestAccepted(sortContactsByDate(rooms), room));
+}
+
+const handleChatRequestDenied = (room, dispatch) => {
+    let user = JSON.parse(localStorage.getItem('user')); 
+    let { rooms } = user;
+    rooms = rooms.filter(rm => rm.roomId == room.roomId);
+    user = { ...user, rooms }
+    localStorage.setItem('user', JSON.stringify(user));
+    dispatch(chatRequestDenied(rooms));
+}
+const initializeDB = () => {
+    if (!('indexedDB' in window)) {
+        console.warn('IndexedDB not supported')
+        return
+    }
+    db = new Dexie("Piperchat-db");
+    db.version(1).stores({ messages: "roomId,id,text,sender" });
+}
+
+export const sendMessage = message => {
     return dispatch => {
-        console.log(message);
-         stompClient.send("/socket-subscriber/send/message", {}, JSON.stringify(message));
-    }
-  }
-
-export const chatInit = () => { 
-    return (dispatch, getState) => {
-        const { userId } = getState().auth;
-        // user = userId;
-        const chatManager = new ChatManager({
-            instanceLocator: 'v1:us1:64b7dbdb-3e59-4fad-9823-83add90cba65',
-            userId: userId,
-            tokenProvider: new TokenProvider({
-                url: 'https://us1.pusherplatform.io/services/chatkit_token_provider/v1/64b7dbdb-3e59-4fad-9823-83add90cba65/token'
-            })
-        });    
-        chatManager
-        .connect({
-            onAddedToRoom: room => {
-                // getRooms();
-                // getMessages(room);
-                dispatch(subscribeToRooms(currentUser))
-            },
-            // onUserLeftRoom: (room, user) => {
-            //     if (userId !== user.id && room.isPrivate){
-            //         let customMessage = `${user.id} has exited the room. You're all alone.`;
-            //         currentUser.updateRoom({
-            //             roomId: room.id,
-            //             customData: { 'customMessage':  customMessage},
-            //           })
-            //     }
-            // }
-        })
-        .then(user => {
-            currentUser = user;
-            dispatch(subscribeToRooms(currentUser))
-            dispatch(chatInitSuccess(currentUser));
-            dispatch(getRooms());
-        })
-        .catch(err => console.log(err));
+        stompClient.send("/socket-subscriber/send/message", {}, JSON.stringify(message));
+        let user = JSON.parse(localStorage.getItem('user'));
+        let { rooms } = user;
+        let index = findRoomIndex(rooms, message.roomId);
+        rooms[index].updatedAt = new Date();
+        user = { ...user, rooms }
+        localStorage.setItem('user', JSON.stringify(user));
+        dispatch(messageSent(sortContactsByDate(rooms)));
     }
 }
+
+const messageSent = rooms => ({ type: actionTypes.MESSAGE_SENT, rooms})
 
 const getRooms = () => {
     return dispatch => {
@@ -115,12 +180,6 @@ const getRooms = () => {
     }
 }
 
-const sortContactsByDate = contacts => {
-    return contacts.sort((a, b) => { 
-        return new Date(b.lastMessageAt) - new Date(a.lastMessageAt);
-    });
-}
-
 const chatInitSuccess = (currentUser, stompClient) => {
     return {
         type: actionTypes.CHAT_INIT_SUCCESS,
@@ -128,42 +187,19 @@ const chatInitSuccess = (currentUser, stompClient) => {
         stompClient
     }
 }
-const onNewMessage = (message, belongsToCurrentRoom) => {
+const onNewMessage = (message, belongsToCurrentRoom, rooms) => {
     return {
         type: actionTypes.ON_NEW_MESSAGE,
         message,
-        belongsToCurrentRoom
-    }
-}
-
-const subscriptionSuccessful = rooms => {
-    return {
-        type: actionTypes.SUBSCRIPTIONSUCCESSFUL,
+        belongsToCurrentRoom,
         rooms
     }
 }
-const subscribeToRooms = user => {
-    return (dispatch, getState) => {
-        const contacts = sortContactsByDate(user.rooms);
-        // dispatch(subscriptionSuccessful(contacts))
-        dispatch(getRooms());
-        contacts.map(con => {
-            return  user.subscribeToRoom({
-                 roomId: con.id,
-                 hooks: {
-                   onMessage: message => {
-                     let belongsToCurrentRoom = false;
-                     const { currentRoom } = getState().chat;
-                    if (currentRoom && currentRoom.id === message.roomId){
-                        belongsToCurrentRoom = true;
-                    }
-                    dispatch(getRooms());
-                    dispatch(onNewMessage(message, belongsToCurrentRoom));
-                   }
-                 },
-                 messageLimit: 0
-               })
-         })
+
+const SUBSCRIPTION_SUCCESSFUL = rooms => {
+    return {
+        type: actionTypes.SUBSCRIPTION_SUCCESSFUL,
+        rooms
     }
 }
 
@@ -175,9 +211,17 @@ const fetchMessagesSuccess = (messages, room) => {
     }
 }
 export const getMessages = room => {
-    return dispatch => {
-      
+    return (dispatch, getState) => {
         let token = localStorage.getItem('token');
+        let { messages, unopenedMessages } = getState().chat;
+        if (messages.hasOwnProperty(room.roomId)){
+            let messagesCopy = { ...messages };
+            if(unopenedMessages.hasOwnProperty(room.roomId)){
+                messagesCopy[room.roomId] = messagesCopy[room.roomId].concat(unopenedMessages[room.roomId]);
+            }
+            dispatch({type: actionTypes.CHANGE_ROOM, room, messages: messagesCopy })
+            return;
+        }
         axios.get(constants.GET_MESSAGES_URL(room.roomId), {headers: {'authorization': 'Bearer ' + token}})
         .then(res => {
             dispatch(fetchMessagesSuccess(res.data, room));
@@ -188,11 +232,7 @@ export const getMessages = room => {
     }
    
 }
-export const sendMessage = data => {
-    return dispatch => {
-        currentUser.sendMessage(data);
-    }
-}
+
 const createGroupSuccess = () => {
     return {
         type: actionTypes.CREATE_GROUP_SUCCESS
@@ -216,7 +256,7 @@ export const createNewGroup = data => {
           }).then(room => {
             console.log(`Created room called ${room.name}`);
             dispatch(createGroupSuccess());
-            dispatch(subscribeToRooms());
+            // dispatch(subscribeToRooms());
           })
           .catch(err => {
             console.log(`Error creating room ${err}`);
@@ -224,10 +264,11 @@ export const createNewGroup = data => {
           })
     }
 }
-const startNewChatSuccess = room => {
+const startNewChatSuccess = (rooms, room) => {
     return {
         type: actionTypes.START_NEW_CHAT_SUCCESS,
-        room
+        room,
+        rooms
     }
 }
 const startNewChatFailed = err => {
@@ -272,15 +313,17 @@ export const startNewChat = data => {
             "name": user.username + 'and' + data.chatParticipant,
             "createdBy": user.username
         }
-        let { userId, profileImage }  = user;
+        
         let { isDuplicate, roomId } = checkRoomDuplicity(user, data.chatParticipant);
         if (!isDuplicate){
         axios.post(constants.NEW_ROOM_URL, roomData, {
             headers: {'authorization': 'Bearer ' + token}
         }).then(res => {
-            console.log(res);
-            dispatch(startNewChatSuccess(res.data));
-            dispatch(subscribeToRooms(currentUser));
+            let { rooms }  = user;
+            rooms.push(res.data);
+            console.log(rooms, res.data);
+            localStorage.setItem('user', JSON.stringify(user));
+            dispatch(startNewChatSuccess(sortContactsByDate(rooms), res.data));
             })
             .catch(err => {
                 // console.log(err.response);
@@ -292,6 +335,48 @@ export const startNewChat = data => {
             }
     }
 }
+
+export const acceptChatRequest = room => {
+    return (dispatch, getState) => {
+        let message = {
+            type: 'acceptChatRequest',
+            data: room,
+            to: room.createdBy,
+            from: currentUser.username
+        };
+        sendNotification(message);
+        subscribeToRoom(dispatch, getState, room.roomId);
+        let user = JSON.parse(localStorage.getItem('user'));
+        let { rooms } = user;
+        let index = findRoomIndex(rooms, room.roomId);
+        rooms[index].isARequest = false;
+        user = { ...user, rooms }
+        localStorage.setItem('user', JSON.stringify(user));
+        dispatch({type: actionTypes.ON_ACCEPT_CHAT_REQUEST, rooms: sortContactsByDate(rooms), currentRoom: rooms[index] })
+        
+    }
+}
+
+const sendNotification = notification => {
+    stompClient.send(`/socket-subscriber/${notification.to}`, {}, JSON.stringify(notification))
+}
+export const denyChatRequest = room => {
+    return dispatch => {
+        let message = {
+            type: 'denyChatRequest',
+            data: room,
+            to: room.createdBy
+        };
+        sendNotification(message);
+    }
+}
+
+const subscribeToRoom = (dispatch, getState, id) => {
+    stompClient.subscribe("/socket-publisher/" + id, message => {
+        handleResult(dispatch, getState, message);
+    });
+}
+
 export const joinRoom = roomId => {
     return dispatch => {    
         currentUser.joinRoom({ roomId })

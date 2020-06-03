@@ -124,7 +124,16 @@ const getMedia = () => {
                 height: 720,
                 frameRate: 15
             },
-        audio: true
+        audio: {
+            autoGainControl: false,
+            channelCount: 2,
+            echoCancellation: false,
+            latency: 0,
+            noiseSuppression: false,
+            sampleRate: 48000,
+            sampleSize: 16,
+            volume: 1.0
+        }
       });
 }
 
@@ -195,33 +204,20 @@ const onLocalStream = stream => {
     }
 }
 
-function onlyAllowOneCall(fn){
-    var hasBeenCalled = false;    
-    return function(){
-         if (hasBeenCalled){
-              throw Error("Attempted to call callback twice")
-         }
-         hasBeenCalled = true;
-         return fn.apply(this, arguments)
-    }
-}
-
 function handleOffer(offer) {
-    // debugger;
     console.log('Accepting offer from ' + connectedUser);
     conn.setRemoteDescription(new RTCSessionDescription(offer));
     //create an answer to an offer 
     console.log('Creating and sending answer to ' + connectedUser);
-    conn.createAnswer(answer => { 
+    conn.createAnswer(answer => {
+        answer.sdp = answer.sdp.replace('useinbandfec=1', 'useinbandfec=1; stereo=1; maxaveragebitrate=510000');
         send({ 
             type: "answer", 
             answer: answer,
             from: currentUsername,
             to: connectedUser
        });
-       if(conn.signalingState !== "stable"){
-            conn.setLocalDescription(answer)//.then(null).catch(err => {debugger});
-       }
+        conn.setLocalDescription(answer);
         
     }, error => {
        console.log("Error when creating an answer"); 
@@ -253,12 +249,10 @@ const handleCallRejection = data => {
 }
 function handleAnswer(answer, name) { 
     console.log('Accepting answer from ' + name);
-    // debugger;
-    if(conn.signalingState !== "stable"){
-        conn.setRemoteDescription(new RTCSessionDescription(answer));
-    }
+    conn.setRemoteDescription(new RTCSessionDescription(answer));
     store.dispatch({type: actionTypes.CALL_ACCEPTED})
-};
+}
+
 function handleCandidate(candidate) { 
     conn.addIceCandidate(new RTCIceCandidate(candidate)); 
 };
