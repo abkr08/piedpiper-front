@@ -39,6 +39,12 @@ export const formatTime = date => {
     return moment.utc(date).utcOffset(timedifference * -1).format('hh:mm');
 }
 
+export const sortContactsByDate = contacts => {
+    return contacts.sort((a, b) => { 
+        return new Date(b.updatedAt) - new Date(a.updatedAt);
+    });
+}
+
 export const checkValidity = (value, rules) => {
     
     let isValid = true;

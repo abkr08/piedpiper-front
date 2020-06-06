@@ -1,5 +1,6 @@
 import * as actionTypes from '../actions';
 import * as constants from "../../../shared/constants";
+import { sortContactsByDate } from '../../../shared/utility'
 import axios from '../../../Axios';
 
 const logInSuccess = (token, user) => {
@@ -25,6 +26,7 @@ const onAuthInit = () => {
         type: actionTypes.ON_AUTH_INIT
     }
 }
+
 export const onLogIn = (data) => {
     return dispatch => {
         dispatch(onAuthInit())
@@ -36,6 +38,7 @@ export const onLogIn = (data) => {
            localStorage.setItem("user", JSON.stringify(user));
            localStorage.setItem("expiresIn", expirationDate);
            dispatch(logInSuccess(res.data.token, user));
+           dispatch(onRoomsLoaded(sortContactsByDate(user.rooms)));
            dispatch(checkTokenValidity(expiresIn));
          })
          .catch(err => {
@@ -43,6 +46,7 @@ export const onLogIn = (data) => {
          })
     }
 }
+
 const logInFailed = err => {
     return {
         type: actionTypes.LOG_IN_FAILED,
@@ -59,7 +63,9 @@ export const onLogout = () => {
     return (dispatch, getState) => {
         //delete token saved in local storage
         let { stompClient } = getState().chat;
-        stompClient.disconnect();
+        if(stompClient){
+            stompClient.disconnect();
+        }
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         localStorage.removeItem("expiresIn");
@@ -74,6 +80,9 @@ const authSuccess = (token, user) => {
         user
     }
 }
+
+const onRoomsLoaded = rooms => ({ type: actionTypes.ON_ROOMS_LOADED, rooms})
+
 export const checkAuthState = () => {
     return dispatch => {
         let token = localStorage.getItem('token');
@@ -86,6 +95,7 @@ export const checkAuthState = () => {
             } else {
                 const user = JSON.parse(localStorage.getItem('user'));
                 dispatch(authSuccess(token, user));
+                dispatch(onRoomsLoaded(sortContactsByDate(user.rooms)));
                 dispatch(checkTokenValidity((expirationDate.getTime() - new Date().getTime())));
             
             }

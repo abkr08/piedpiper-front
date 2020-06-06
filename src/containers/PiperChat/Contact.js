@@ -66,10 +66,11 @@ const contact = props => {
                     <div className={classes.FloatedRight}>
                         <span className={classes.LastUpdated}>{updatedAt ? formatDate(updatedAt) : formatDate(createdAt)}</span>
                         <div className={classes.UnreadMessagesContainer}>
-                            { (unopenedMessages && unopenedMessages.length) && 
+                            { (unopenedMessages && unopenedMessages.length) ? ( 
                                 <span className={classes.UnreadMessages}>
                                     {unopenedMessages.length}
                                 </span> 
+                                ) : null
                             }
                             <i onClick={showOptionsHandler} className="fa fa-angle-down"></i>
                             { showOptions && 

@@ -1,6 +1,8 @@
 import { store }  from '../../../index';
 import * as actionTypes from '../actions';
-// import io from 'socket.io-client'; 
+import UIfx from 'uifx';
+import {Howl, Howler} from 'howler';
+import simpleRing from '../../../assets/audio/simple_ring.mp3'; 
 
 
 let connectedUser;
@@ -8,13 +10,31 @@ let currentUsername;
 const config = {};
 
 const configuration = { 
-    "iceServers": [{ "urls": "stun:stun2.1.google.com:19302" }]
+    iceServers: [
+        {   urls: [ "stun:tk-turn2.xirsys.com" ]},
+        {   username: "ibJsMz4qXATWVjMFqEMHBGn9qfBwA0ENbcnNG9fDjGNN-Ez-k8KxQ3JbE8q1olyrAAAAAF7bpJFhYmtyMDg=",   
+            credential: "e9f8bd4e-a7ff-11ea-ab43-0242ac140004",   
+            urls: [       
+                "turn:tk-turn2.xirsys.com:80?transport=udp",       
+                "turn:tk-turn2.xirsys.com:3478?transport=udp",       
+                "turn:tk-turn2.xirsys.com:80?transport=tcp",       
+                "turn:tk-turn2.xirsys.com:3478?transport=tcp",       
+                "turns:tk-turn2.xirsys.com:443?transport=tcp",       
+                "turns:tk-turn2.xirsys.com:5349?transport=tcp"   
+    ]}]
 };
 
 let stompClient = null;
 let conn = null;
 let stream = null;
 let requestSent = false;
+
+const ringer = new Howl({
+    src: simpleRing,
+    // autoplay: true,
+    loop: true,
+    volume: 0.2,
+});
 
 const prepareCaller = channel => {
     return {
@@ -92,6 +112,7 @@ const createOffer = to => {
 const handleRequest = (from, callType) => {
     connectedUser = from;
     store.dispatch({type: actionTypes.ON_INCOMING_CALL, callType, caller: from});
+    ringer.play();
     conn = new RTCPeerConnection(configuration);
         //when a remote user adds stream to the peer connection, we display it 
         conn.ontrack = function (stream) { 
@@ -124,7 +145,16 @@ const getMedia = () => {
                 height: 720,
                 frameRate: 15
             },
-        audio: true
+        audio: {
+            autoGainControl: false,
+            channelCount: 2,
+            echoCancellation: false,
+            latency: 0,
+            noiseSuppression: false,
+            sampleRate: 48000,
+            sampleSize: 16,
+            volume: 1.0
+        }
       });
 }
 
@@ -195,33 +225,20 @@ const onLocalStream = stream => {
     }
 }
 
-function onlyAllowOneCall(fn){
-    var hasBeenCalled = false;    
-    return function(){
-         if (hasBeenCalled){
-              throw Error("Attempted to call callback twice")
-         }
-         hasBeenCalled = true;
-         return fn.apply(this, arguments)
-    }
-}
-
 function handleOffer(offer) {
-    // debugger;
     console.log('Accepting offer from ' + connectedUser);
     conn.setRemoteDescription(new RTCSessionDescription(offer));
     //create an answer to an offer 
     console.log('Creating and sending answer to ' + connectedUser);
-    conn.createAnswer(answer => { 
+    conn.createAnswer(answer => {
+        answer.sdp = answer.sdp.replace('useinbandfec=1', 'useinbandfec=1; stereo=1; maxaveragebitrate=510000');
         send({ 
             type: "answer", 
             answer: answer,
             from: currentUsername,
             to: connectedUser
        });
-       if(conn.signalingState !== "stable"){
-            conn.setLocalDescription(answer)//.then(null).catch(err => {debugger});
-       }
+        conn.setLocalDescription(answer);
         
     }, error => {
        console.log("Error when creating an answer"); 
@@ -234,6 +251,7 @@ export const callAccepted = () => {
             to: connectedUser,
             from: currentUsername
         })
+        ringer.stop();
         dispatch({type: actionTypes.CALL_ACCEPTED})
     }
 }
@@ -243,6 +261,8 @@ export const callRejected = caller => {
         by: currentUsername,
         to: connectedUser
     })
+    ringer.stop();
+    stream && stream.getTracks().forEach(track => track.stop());
     return dispatch => {
         dispatch({type: actionTypes.CALL_REJECTED})
     }
@@ -253,12 +273,10 @@ const handleCallRejection = data => {
 }
 function handleAnswer(answer, name) { 
     console.log('Accepting answer from ' + name);
-    // debugger;
-    if(conn.signalingState !== "stable"){
-        conn.setRemoteDescription(new RTCSessionDescription(answer));
-    }
+    conn.setRemoteDescription(new RTCSessionDescription(answer));
     store.dispatch({type: actionTypes.CALL_ACCEPTED})
-};
+}
+
 function handleCandidate(candidate) { 
     conn.addIceCandidate(new RTCIceCandidate(candidate)); 
 };
@@ -284,7 +302,8 @@ export const endCall = () => {
 function handleLeave() { 
     connectedUser = null;
     stream && stream.getTracks().forEach(track => track.stop());
-    store.dispatch(callEnded()); 
+    store.dispatch(callEnded());
+    ringer.stop();
     store.dispatch(prepareCaller())
     if(conn){
         conn.close();

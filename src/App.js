@@ -33,22 +33,18 @@ class App extends Component {
       if (!channel){
         // this.props.getCallerReady();
       }
-      if(callEnded){
-        this.ringtoneRef.pause();
-        this.ringtoneRef.currentTime = 0;
-      }
+      // if(callEnded){
+      //   this.ringtoneRef.pause();
+      //   this.ringtoneRef.currentTime = 0;
+      // }
     }
   }
   acceptCall = () => {
-    this.ringtoneRef.pause();
-    this.ringtoneRef.currentTime = 0;
     this.props.callAccepted();
   }
 
   rejectCall = () => {
     const { caller, callRejected } = this.props;
-    this.ringtoneRef.pause();
-    this.ringtoneRef.currentTime = 0;
     callRejected(caller);
   }
   render() {
@@ -63,7 +59,6 @@ class App extends Component {
           );
       } else {
         if (this.props.incomingCall){
-          this.ringtoneRef.play();
           chatScreen = (
             <>
               <IncomingCall acceptCall={this.acceptCall}

@@ -15,7 +15,6 @@ export {
 } from './actionCreators/callActionCreators';
 
 export {
-    chatInit,
     getMessages,
     sendMessage,
     createNewGroup,
@@ -23,7 +22,8 @@ export {
     joinRoom,
     deleteChat,
     initializeWebSocketConnection,
-    sendMessageUsingSocket
+    acceptChatRequest,
+    denyChatRequest
 } from './actionCreators/chatActionCreators';
 
 export {
