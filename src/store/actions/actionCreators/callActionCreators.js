@@ -1,6 +1,8 @@
 import { store }  from '../../../index';
 import * as actionTypes from '../actions';
-// import io from 'socket.io-client'; 
+import UIfx from 'uifx';
+import {Howl, Howler} from 'howler';
+import simpleRing from '../../../assets/audio/simple_ring.mp3'; 
 
 
 let connectedUser;
@@ -8,13 +10,31 @@ let currentUsername;
 const config = {};
 
 const configuration = { 
-    "iceServers": [{ "urls": "stun:stun2.1.google.com:19302" }]
+    iceServers: [
+        {   urls: [ "stun:tk-turn2.xirsys.com" ]},
+        {   username: "ibJsMz4qXATWVjMFqEMHBGn9qfBwA0ENbcnNG9fDjGNN-Ez-k8KxQ3JbE8q1olyrAAAAAF7bpJFhYmtyMDg=",   
+            credential: "e9f8bd4e-a7ff-11ea-ab43-0242ac140004",   
+            urls: [       
+                "turn:tk-turn2.xirsys.com:80?transport=udp",       
+                "turn:tk-turn2.xirsys.com:3478?transport=udp",       
+                "turn:tk-turn2.xirsys.com:80?transport=tcp",       
+                "turn:tk-turn2.xirsys.com:3478?transport=tcp",       
+                "turns:tk-turn2.xirsys.com:443?transport=tcp",       
+                "turns:tk-turn2.xirsys.com:5349?transport=tcp"   
+    ]}]
 };
 
 let stompClient = null;
 let conn = null;
 let stream = null;
 let requestSent = false;
+
+const ringer = new Howl({
+    src: simpleRing,
+    // autoplay: true,
+    loop: true,
+    volume: 0.2,
+});
 
 const prepareCaller = channel => {
     return {
@@ -92,6 +112,7 @@ const createOffer = to => {
 const handleRequest = (from, callType) => {
     connectedUser = from;
     store.dispatch({type: actionTypes.ON_INCOMING_CALL, callType, caller: from});
+    ringer.play();
     conn = new RTCPeerConnection(configuration);
         //when a remote user adds stream to the peer connection, we display it 
         conn.ontrack = function (stream) { 
@@ -230,6 +251,7 @@ export const callAccepted = () => {
             to: connectedUser,
             from: currentUsername
         })
+        ringer.stop();
         dispatch({type: actionTypes.CALL_ACCEPTED})
     }
 }
@@ -239,6 +261,8 @@ export const callRejected = caller => {
         by: currentUsername,
         to: connectedUser
     })
+    ringer.stop();
+    stream && stream.getTracks().forEach(track => track.stop());
     return dispatch => {
         dispatch({type: actionTypes.CALL_REJECTED})
     }
@@ -278,7 +302,8 @@ export const endCall = () => {
 function handleLeave() { 
     connectedUser = null;
     stream && stream.getTracks().forEach(track => track.stop());
-    store.dispatch(callEnded()); 
+    store.dispatch(callEnded());
+    ringer.stop();
     store.dispatch(prepareCaller())
     if(conn){
         conn.close();

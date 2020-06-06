@@ -116,7 +116,7 @@ class Call extends Component {
                             ref={(lVid)=> this.localVideoRef = lVid}>
                         </video>
 
-                        <video className={classes.RemoteVideo} autoPlay muted={muted}
+                        <video className={classes.RemoteVideo} autoPlay muted={!remoteStream}
                         ref={(rVid)=> this.remoteVideoRef = rVid}
                         onLoadedData={this.showButtons}
                         >

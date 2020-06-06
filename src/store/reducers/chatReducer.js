@@ -91,9 +91,12 @@ const chatReducer = (state = initialState, action) => {
             } 
             return newState;
         case actionTypes.CHAT_REQUEST_DENIED:
-            return {
-                ...state, rooms: action.rooms
-            }
+            newState = { ...state, rooms: action.rooms }
+            if(state.currentRoom.roomId == action.room.roomId){
+                newState.currentRoom = null;
+            } 
+            return newState;
+
         case actionTypes.ON_CHAT_REQUEST:
             return {
                 ...state, rooms: action.rooms

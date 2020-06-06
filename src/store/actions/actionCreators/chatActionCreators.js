@@ -20,7 +20,7 @@ const dingg = new UIfx(
       volume: 0.1, // number between 0.0 ~ 1.0
       throttleMs: 100
     }
-  )
+)
 
 export const initializeWebSocketConnection = () => {
     initializeDB();
@@ -90,7 +90,7 @@ const handleNotification = (data, dispatch, getState) => {
         case 'acceptChatRequest':
             handleChatRequestAccepted(notification.data, dispatch, getState);
             break;
-        case 'chatRequestDenied':
+        case 'denyChatRequest':
             handleChatRequestDenied(notification.data, dispatch);
             break;
         default:
@@ -100,7 +100,7 @@ const handleNotification = (data, dispatch, getState) => {
 
 const onChatRequest = rooms => ({ type: actionTypes.ON_CHAT_REQUEST, rooms});
 const chatRequestAccepted = (rooms, currentRoom) => ({ type: actionTypes.CHAT_REQUEST_ACCEPTED, rooms, currentRoom});
-const chatRequestDenied = rooms => ({ type: actionTypes.CHAT_REQUEST_DENIED, rooms});
+const chatRequestDenied = (rooms, room) => ({ type: actionTypes.CHAT_REQUEST_DENIED, rooms, room});
 
 const handleChatRequest = (room, dispatch, getState) => {
     let user  = JSON.parse(localStorage.getItem('user')); 
@@ -113,7 +113,6 @@ const handleChatRequest = (room, dispatch, getState) => {
 const findRoomIndex = (rooms, id) => {
     for (let i = 0; i < rooms.length; i++){
         let rm = rooms[i];
-        debugger;
         if(rm.roomId == id){
             return i;
         }
@@ -135,10 +134,10 @@ const handleChatRequestAccepted = (room, dispatch, getState) => {
 const handleChatRequestDenied = (room, dispatch) => {
     let user = JSON.parse(localStorage.getItem('user')); 
     let { rooms } = user;
-    rooms = rooms.filter(rm => rm.roomId == room.roomId);
+    rooms = rooms.filter(rm => rm.roomId !== room.roomId);
     user = { ...user, rooms }
     localStorage.setItem('user', JSON.stringify(user));
-    dispatch(chatRequestDenied(rooms));
+    dispatch(chatRequestDenied(sortContactsByDate(rooms), room));
 }
 const initializeDB = () => {
     if (!('indexedDB' in window)) {
@@ -367,6 +366,7 @@ export const denyChatRequest = room => {
             data: room,
             to: room.createdBy
         };
+        handleChatRequestDenied(room, dispatch);
         sendNotification(message);
     }
 }
